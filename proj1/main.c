@@ -358,7 +358,7 @@ int write_gx_cfg_to_text(FILE* file, const gx_cfg_t* cfg) {
     fprintf(file, "Header:\n");
     fprintf(file, "\thashTitle: 0x%016llX\n", cfg->header.hashTitle);
     fprintf(file, "\tdataOffset: 0x%08lX\n", cfg->header.dataOffset);
-    fprintf(file, "\tDataCount: 0x%08lX\n", cfg->header.cmdCount);
+    fprintf(file, "\tcmdCount: 0x%08lX\n", cfg->header.cmdCount);
 
     // Write commands
     for (uint32_t i = 0; i < cfg->header.cmdCount; i++) {
