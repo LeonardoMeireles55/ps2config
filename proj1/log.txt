@@ -3,7 +3,7 @@
 Header:
 	hashTitle: 0x00000099415910E5
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000008
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -14,46 +14,38 @@ Header:
 Header:
 	hashTitle: 0x0000000EB9A5E8A5
 	dataOffset: 0x00341178
-	DataCount: 0x00000003
+	cmdCount: 0x00000003
 	#1 cmdId: 0x0000001E
 		align : 00000000 
 		param : 0x00000000
-		align : 00000000 00000002 00000000 
+		align : 00000000 00000002 00000000   WARNING!
 	#2 cmdId: 0x00000000
 		align : 00000000 
-		Unknown command id 0x0
-		align : 00000000 00000000 0000000A 00000000 
+		EEOffset : 0x00000000
+		align : 00000000 
+		FuncIDOffset  : 0x000000000000000A
 	#3 cmdId: 0x00000000
-		align : 00040100 
-		Unknown command id 0x0
-		align : 00000000 00000000 00000000 00000002 
+		align : 00000000 
+		EEOffset : 0x00010400
+		align : 00000000 
+		FuncIDOffset  : 0x0000000000000000
 
 === File: SCUS_971.24 ===
 Header:
 	hashTitle: 0x00000006B1ADE0FD
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000008
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
 		cmdDataCount  : 0x00000001
 		align : 00000000 
 
-=== File: SLES_502.01 ===
-Header:
-	hashTitle: 0x000000B1699139CD
-	dataOffset: 0x00341178
-	DataCount: 0x00000001
-	#1 cmdId: 0x0048F280
-		align : 00000000 
-		Unknown command id 0x48F280
-		align : 7FBF0060 27BDFF80 7FBF0060 27BDEE00 
-
 === File: SLES_503.82 ===
 Header:
 	hashTitle: 0x0000008159A10945
 	dataOffset: 0x00341178
-	DataCount: 0x00000002
+	cmdCount: 0x00000002
 	#1 cmdId: 0x0000000C
 		align : 00000000 
 		param : 0x00172434
@@ -64,46 +56,11 @@ Header:
 		param2 : 0x00172DB4
 		align : 00000000 00000000 
 
-=== File: SLES_506.62 ===
-Header:
-	hashTitle: 0x000000C911E9414D
-	dataOffset: 0x00341178
-	DataCount: 0x00000001
-	#1 cmdId: 0x00378FE0
-		align : 00000000 
-		Unknown command id 0x378FE0
-		align : FFBF0060 27BDFF80 FFBF0060 27BDF000 
-
-=== File: SLES_510.44 ===
-Header:
-	hashTitle: 0x00000069B149E1FD
-	dataOffset: 0x00341178
-	DataCount: 0x00000004
-	#1 cmdId: 0x00000000
-		align : 00000000 
-		Unknown command id 0x0
-		align : 0024F05C 00000000 00000000 00036E28 
-	#2 cmdId: 0x0000000D
-		align : 00000000 
-		param1 : 0x00132620
-		param2 : 0x00132A80
-		align : 00000000 00000000 
-	#3 cmdId: 0x00000009
-		align : 00000000 
-		cmdDataOffset : 0x0000000000344090
-		cmdDataCount  : 0x00000001
-		align : 00000000 
-	#4 cmdId: 0x00000008
-		align : 00000000 
-		cmdDataOffset : 0x00000000003411D8
-		cmdDataCount  : 0x00000005
-		align : 00000000 
-
 === File: SLES_511.56 ===
 Header:
 	hashTitle: 0x000000419961C955
 	dataOffset: 0x00341178
-	DataCount: 0x00000002
+	cmdCount: 0x00000002
 	#1 cmdId: 0x0000000C
 		align : 00000000 
 		param : 0x001753E4
@@ -118,7 +75,7 @@ Header:
 Header:
 	hashTitle: 0x0000008259A10935
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000008
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -129,7 +86,7 @@ Header:
 Header:
 	hashTitle: 0x00000032E911B98D
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -139,7 +96,7 @@ Header:
 Header:
 	hashTitle: 0x0000001AC139913D
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000008
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -150,7 +107,7 @@ Header:
 Header:
 	hashTitle: 0x000000FB21D9717D
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -160,7 +117,7 @@ Header:
 Header:
 	hashTitle: 0x000000E339C16995
 	dataOffset: 0x00341178
-	DataCount: 0x00000002
+	cmdCount: 0x00000002
 	#1 cmdId: 0x00000010
 		align : 00000000 
 		cmdDataOffset : 0x0000000000323170
@@ -176,7 +133,7 @@ Header:
 Header:
 	hashTitle: 0x0000009449B119E5
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -186,7 +143,7 @@ Header:
 Header:
 	hashTitle: 0x0000009449B119ED
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -196,7 +153,7 @@ Header:
 Header:
 	hashTitle: 0x0000009449B119FD
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -206,7 +163,7 @@ Header:
 Header:
 	hashTitle: 0x0000009449B119C5
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -216,7 +173,7 @@ Header:
 Header:
 	hashTitle: 0x0000009449B119D5
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -226,7 +183,7 @@ Header:
 Header:
 	hashTitle: 0x0000009C41B9112D
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -236,7 +193,7 @@ Header:
 Header:
 	hashTitle: 0x0000008C51A90155
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -246,7 +203,7 @@ Header:
 Header:
 	hashTitle: 0x000000EC31C961DD
 	dataOffset: 0x00341178
-	DataCount: 0x00000002
+	cmdCount: 0x00000002
 	#1 cmdId: 0x00000023
 		align : 00000000 
 		param1 : 0x00412980
@@ -262,7 +219,7 @@ Header:
 Header:
 	hashTitle: 0x000000EC31C961D5
 	dataOffset: 0x00341178
-	DataCount: 0x00000002
+	cmdCount: 0x00000002
 	#1 cmdId: 0x00000023
 		align : 00000000 
 		param1 : 0x004129C0
@@ -278,7 +235,7 @@ Header:
 Header:
 	hashTitle: 0x000000EC31C961CD
 	dataOffset: 0x00341178
-	DataCount: 0x00000002
+	cmdCount: 0x00000002
 	#1 cmdId: 0x00000023
 		align : 00000000 
 		param1 : 0x00412B80
@@ -294,7 +251,7 @@ Header:
 Header:
 	hashTitle: 0x0000000CD12981CD
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000008
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -305,7 +262,7 @@ Header:
 Header:
 	hashTitle: 0x000000548971D935
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000006
 		align : 00000000 
 		param : 0x00000008
@@ -315,7 +272,7 @@ Header:
 Header:
 	hashTitle: 0x000000F529D179CD
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -325,7 +282,7 @@ Header:
 Header:
 	hashTitle: 0x00000026483A911D
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -335,7 +292,7 @@ Header:
 Header:
 	hashTitle: 0x0000003E502289A5
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -345,7 +302,7 @@ Header:
 Header:
 	hashTitle: 0x000000F088FA51DD
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000008
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -356,7 +313,7 @@ Header:
 Header:
 	hashTitle: 0x0000000C9624896D
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -366,7 +323,7 @@ Header:
 Header:
 	hashTitle: 0x00000054CE7CD115
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -376,7 +333,7 @@ Header:
 Header:
 	hashTitle: 0x000000BD2694396D
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -386,7 +343,7 @@ Header:
 Header:
 	hashTitle: 0x000000BD269439A5
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -396,7 +353,7 @@ Header:
 Header:
 	hashTitle: 0x000000BD269439ED
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -406,7 +363,7 @@ Header:
 Header:
 	hashTitle: 0x000000B52E9C3105
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -416,7 +373,7 @@ Header:
 Header:
 	hashTitle: 0x000000AD36842925
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -426,7 +383,7 @@ Header:
 Header:
 	hashTitle: 0x000000A53E8C213D
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -436,7 +393,7 @@ Header:
 Header:
 	hashTitle: 0x0000000F962489CD
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000008
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -447,7 +404,7 @@ Header:
 Header:
 	hashTitle: 0x00000077EE5CF145
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -457,7 +414,7 @@ Header:
 Header:
 	hashTitle: 0x0000009076C469D5
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -467,7 +424,7 @@ Header:
 Header:
 	hashTitle: 0x00000028CE7CD1A5
 	dataOffset: 0x00341178
-	DataCount: 0x00000002
+	cmdCount: 0x00000002
 	#1 cmdId: 0x00000023
 		align : 00000000 
 		param1 : 0x0040FF28
@@ -483,7 +440,7 @@ Header:
 Header:
 	hashTitle: 0x0000006BD16CC1DD
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -493,7 +450,7 @@ Header:
 Header:
 	hashTitle: 0x0000009429943905
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -503,7 +460,7 @@ Header:
 Header:
 	hashTitle: 0x000000942994394D
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000007
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -513,13 +470,13 @@ Header:
 Header:
 	hashTitle: 0x0000000A00000000
 	dataOffset: 0x00010400
-	DataCount: 0x00000000
+	cmdCount: 0x00000000
 
 === File: SLUS_202.28 ===
 Header:
 	hashTitle: 0x00000053A955F9E5
 	dataOffset: 0x00341178
-	DataCount: 0x00000004
+	cmdCount: 0x00000004
 	#1 cmdId: 0x0000000C
 		align : 00000000 
 		param : 0x001735D4
@@ -539,36 +496,11 @@ Header:
 		param2 : 0x00175D34
 		align : 00000000 00000000 
 
-=== File: SLUS_204.97 ===
-Header:
-	hashTitle: 0x000000946995398D
-	dataOffset: 0x00341178
-	DataCount: 0x00000004
-	#1 cmdId: 0x00000000
-		align : 00000000 
-		Unknown command id 0x0
-		align : 0024F04C 00000000 00000000 00036E28 
-	#2 cmdId: 0x0000000D
-		align : 00000000 
-		param1 : 0x00132610
-		param2 : 0x00132A70
-		align : 00000000 00000000 
-	#3 cmdId: 0x00000009
-		align : 00000000 
-		cmdDataOffset : 0x00000000003466D0
-		cmdDataCount  : 0x00000001
-		align : 00000000 
-	#4 cmdId: 0x00000008
-		align : 00000000 
-		cmdDataOffset : 0x00000000003411D8
-		cmdDataCount  : 0x00000005
-		align : 00000000 
-
 === File: SLUS_205.46 ===
 Header:
 	hashTitle: 0x0000008479852905
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000008
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -579,7 +511,7 @@ Header:
 Header:
 	hashTitle: 0x00000084798529A5
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000008
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
@@ -590,7 +522,7 @@ Header:
 Header:
 	hashTitle: 0x000000FC01FD5105
 	dataOffset: 0x00341178
-	DataCount: 0x00000002
+	cmdCount: 0x00000002
 	#1 cmdId: 0x00000010
 		align : 00000000 
 		cmdDataOffset : 0x00000000003411A8
@@ -606,7 +538,7 @@ Header:
 Header:
 	hashTitle: 0x00000014E915B9FD
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x0000000C
 		align : 00000000 
 		param : 0x00104124
@@ -616,7 +548,7 @@ Header:
 Header:
 	hashTitle: 0x0000004F905A9A50
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000006
 		align : 00000000 
 		param : 0x00000008
@@ -626,7 +558,7 @@ Header:
 Header:
 	hashTitle: 0x0000000CF10DA10D
 	dataOffset: 0x00341178
-	DataCount: 0x00000002
+	cmdCount: 0x00000002
 	#1 cmdId: 0x00000023
 		align : 00000000 
 		param1 : 0x00412AD8
@@ -638,26 +570,11 @@ Header:
 		cmdDataCount  : 0x00000001
 		align : 00000000 
 
-=== File: SLUS_212.01 ===
-Header:
-	hashTitle: 0x00000024D925893D
-	dataOffset: 0x00341178
-	DataCount: 0x00000002
-	#1 cmdId: 0x00000000
-		align : 00000000 
-		Unknown command id 0x0
-		align : 00113660 00000000 00000000 00034224 
-	#2 cmdId: 0x00000008
-		align : 00000000 
-		cmdDataOffset : 0x00000000003411A8
-		cmdDataCount  : 0x00000004
-		align : 00000000 
-
 === File: SLUS_213.76 ===
 Header:
 	hashTitle: 0x000000748975D9E5
 	dataOffset: 0x00341178
-	DataCount: 0x00000001
+	cmdCount: 0x00000001
 	#1 cmdId: 0x00000008
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
