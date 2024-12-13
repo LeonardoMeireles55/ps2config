@@ -23,12 +23,12 @@ Header:
 		align : 00000000 
 		EEOffset : 0x00000000
 		align : 00000000 
-		FuncIDOffset  : 0x000000000000000A
+		FuncIDOffset  : 0x0000000A00000000
 	#3 cmdId: 0x00000000
+		align : 00040100   WARNING!
+		EEOffset : 0x00000000
 		align : 00000000 
-		EEOffset : 0x00010400
-		align : 00000000 
-		FuncIDOffset  : 0x0000000000000000
+		FuncIDOffset  : 0x0000000000000002
 
 === File: SCUS_971.24 ===
 Header:
@@ -39,6 +39,17 @@ Header:
 		align : 00000000 
 		cmdDataOffset : 0x0000000000341190
 		cmdDataCount  : 0x00000001
+		align : 00000000 
+
+=== File: SLES_502.01 ===
+Header:
+	hashTitle: 0x000000B1699139CD
+	dataOffset: 0x00341178
+	cmdCount: 0x00000001
+	#1 cmdId: 0x00000008
+		align : 00000000 
+		cmdDataOffset : 0x0000000000341190
+		cmdDataCount  : 0x00000002
 		align : 00000000 
 
 === File: SLES_503.82 ===
@@ -55,6 +66,43 @@ Header:
 		param1 : 0x00172D94
 		param2 : 0x00172DB4
 		align : 00000000 00000000 
+
+=== File: SLES_506.62 ===
+Header:
+	hashTitle: 0x000000C911E9414D
+	dataOffset: 0x00341178
+	cmdCount: 0x00000001
+	#1 cmdId: 0x00000008
+		align : 00000000 
+		cmdDataOffset : 0x0000000000341190
+		cmdDataCount  : 0x00000002
+		align : 00000000 
+
+=== File: SLES_510.44 ===
+Header:
+	hashTitle: 0x00000069B149E1FD
+	dataOffset: 0x00341178
+	cmdCount: 0x00000004
+	#1 cmdId: 0x00000000
+		align : 00000000 
+		EEOffset : 0x0024F05C
+		align : 00000000 
+		FuncIDOffset  : 0x0000000000036E28
+	#2 cmdId: 0x0000000D
+		align : 00000000 
+		param1 : 0x00132620
+		param2 : 0x00132A80
+		align : 00000000 00000000 
+	#3 cmdId: 0x00000009
+		align : 00000000 
+		cmdDataOffset : 0x0000000000344090
+		cmdDataCount  : 0x00000001
+		align : 00000000 
+	#4 cmdId: 0x00000008
+		align : 00000000 
+		cmdDataOffset : 0x00000000003411D8
+		cmdDataCount  : 0x00000005
+		align : 00000000 
 
 === File: SLES_511.56 ===
 Header:
@@ -496,6 +544,32 @@ Header:
 		param2 : 0x00175D34
 		align : 00000000 00000000 
 
+=== File: SLUS_204.97 ===
+Header:
+	hashTitle: 0x000000946995398D
+	dataOffset: 0x00341178
+	cmdCount: 0x00000004
+	#1 cmdId: 0x00000000
+		align : 00000000 
+		EEOffset : 0x0024F04C
+		align : 00000000 
+		FuncIDOffset  : 0x0000000000036E28
+	#2 cmdId: 0x0000000D
+		align : 00000000 
+		param1 : 0x00132610
+		param2 : 0x00132A70
+		align : 00000000 00000000 
+	#3 cmdId: 0x00000009
+		align : 00000000 
+		cmdDataOffset : 0x00000000003466D0
+		cmdDataCount  : 0x00000001
+		align : 00000000 
+	#4 cmdId: 0x00000008
+		align : 00000000 
+		cmdDataOffset : 0x00000000003411D8
+		cmdDataCount  : 0x00000005
+		align : 00000000 
+
 === File: SLUS_205.46 ===
 Header:
 	hashTitle: 0x0000008479852905
@@ -568,6 +642,22 @@ Header:
 		align : 00000000 
 		cmdDataOffset : 0x00000000003411A8
 		cmdDataCount  : 0x00000001
+		align : 00000000 
+
+=== File: SLUS_212.01 ===
+Header:
+	hashTitle: 0x00000024D925893D
+	dataOffset: 0x00341178
+	cmdCount: 0x00000002
+	#1 cmdId: 0x00000000
+		align : 00000000 
+		EEOffset : 0x00113660
+		align : 00000000 
+		FuncIDOffset  : 0x0000000000034224
+	#2 cmdId: 0x00000008
+		align : 00000000 
+		cmdDataOffset : 0x00000000003411A8
+		cmdDataCount  : 0x00000004
 		align : 00000000 
 
 === File: SLUS_213.76 ===

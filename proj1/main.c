@@ -158,6 +158,7 @@ int load_gx_cfg(const char* filename, gx_cfg_t* cfg) {
 		{
 			case 0x00:
 				if( fread(&cfg->commands[i].data.cmd_type0.EEOffset, sizeof(int32_t), 1, file) != 1 ||
+					fread(&cfg->commands[i].data.cmd_type0.align, sizeof(int32_t), 1, file) != 1 ||
 					fread(&cfg->commands[i].data.cmd_type0.FuncIDOffset, sizeof(int64_t), 1, file) != 1 ) {
 					perror("Error reading cmd_type0\n");
 					goto end;
@@ -292,6 +293,7 @@ int save_gx_cfg(const char* filename, const gx_cfg_t* cfg) {
         switch (cfg->commands[i].cmdId) {
 			case 0x00:
 				if( fwrite(&cfg->commands[i].data.cmd_type0.EEOffset, sizeof(int32_t), 1, file) != 1 ||
+					fwrite(&cfg->commands[i].data.cmd_type0.align, sizeof(int32_t), 1, file) != 1 ||
 					fwrite(&cfg->commands[i].data.cmd_type0.FuncIDOffset, sizeof(int64_t), 1, file) != 1 ) {
 					perror("Error writing cmd_type0\n");
 					goto end;
