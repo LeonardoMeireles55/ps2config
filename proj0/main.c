@@ -403,7 +403,7 @@ void convert(u8 type, char *input, char *output)
 			case 0x02 :
 			case 0x0F :
 			case 0x10 :
-			case 0x13 :			
+			case 0x13 :
 			case 0x20 :
 			case 0x24 :
 			case 0x26 :
