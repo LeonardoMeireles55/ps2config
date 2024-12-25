@@ -1,0 +1,35 @@
+{
+    "folders": [
+        {
+            "path": "."
+        }
+    ],
+    "settings": {
+        "terminal.integrated.shell.windows": "C:\\cygwin64\\bin\\bash.exe",
+        "files.associations": {
+            "stdio.h": "c",
+            "stdint.h": "c",
+            "dirent.h": "c",
+            "stat.h": "c",
+            "string.h": "c",
+            "__locale": "c",
+            "ios": "c",
+            "libgen.h": "c",
+            "array": "c",
+            "deque": "c",
+            "string": "c",
+            "unordered_map": "c",
+            "vector": "c",
+            "string_view": "c",
+            "initializer_list": "c",
+            "__bit_reference": "c",
+            "__hash_table": "c",
+            "__split_buffer": "c",
+            "iterator": "c",
+            "bitset": "c",
+            "chrono": "c",
+            "algorithm": "c",
+            "random": "c"
+        }
+    }
+}
