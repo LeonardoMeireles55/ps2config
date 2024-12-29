@@ -78,15 +78,23 @@ typedef struct {
 } NetCommand;
 
 typedef struct {
-    uint32_t cmdCount;
+    uint32_t cmdCount; // not used by config
     NetCommand* commands;
+    uint8_t extra_size; // not used by config
+    struct {
+        uint8_t unk;
+        uint8_t disc_count;
+        uint8_t disc_index;
+        uint8_t resetVM;
+    } extra_data;
 } NetCfg_t;
 
 int load_NetCfg(const char* filename, NetCfg_t* cfg);
-int save_NetCfg(const char* filename, const NetCfg_t* cfg);
+int save_NetCfg(const char* filename, NetCfg_t* cfg);
 int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg);
 void free_NetCfg(NetCfg_t* cfg);
 int NetCfg_scandir_to_txt(char* dirpath, char* logpath);
 int netcfg_log(char *filepath, char *logpath);
+int netcfg_netcfg(char *filepath, char *dirOut);
 
 #endif

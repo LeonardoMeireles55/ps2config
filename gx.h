@@ -21,8 +21,8 @@ typedef struct {
 		} cmd_type0;
 		
         struct {
-            int64_t cmdDataOffset;
-            int32_t cmdDataCount;
+            int64_t DataOffset;
+            int32_t DataCount;
             uint8_t align[4];
         } cmd_type1;
 
@@ -37,7 +37,7 @@ typedef struct {
         } cmd_type3;
 
         struct {
-            int64_t cmdDataOffset;
+            int64_t DataOffset;
             uint8_t align[8];
         } cmd_type4;
 
@@ -54,7 +54,7 @@ typedef struct {
         } cmd_type6;
 
         uint8_t align[16];
-    } data;
+    };
 } GxCommand;
 
 typedef struct {
@@ -66,10 +66,11 @@ typedef struct {
 void es_GxHeader(GxHeader* header);
 void es_GxCommand(GxCommand* command);
 int load_GxCfg(const char* filename, GxCfg_t* cfg);
-int save_GxCfg(const char* filename, const GxCfg_t* cfg);
+int save_GxCfg(const char* filename, GxCfg_t* cfg);
 int GxCfg_to_txt(FILE* file, const GxCfg_t* cfg);
 void free_GxCfg(GxCfg_t* cfg);
 int GxCfg_scandir_to_txt(char* dirpath, char* logpath);
 int gxcfg_log(char *filename, char *logpath);
+int gxcfg_gxcfg(char *filename, char *dirOut);
 
 #endif

@@ -8,49 +8,66 @@
 #include <string.h>
 
 #include "gx.h"
+#include "util.h"
+
 extern FILE *gxLog;
-extern void write_data(FILE *file, uint8_t *data, uint32_t size, uint8_t check_align, uint8_t indent);
 
 void es_GxHeader(GxHeader* header) {
-    header->hashTitle = ENDIAN_SWAP(header->hashTitle);
-    header->dataOffset = ENDIAN_SWAP(header->dataOffset);
-    header->cmdCount = ENDIAN_SWAP(header->cmdCount);
+    header->hashTitle = SWAP_BE(header->hashTitle);
+    header->dataOffset = SWAP_BE(header->dataOffset);
+    header->cmdCount = SWAP_BE(header->cmdCount);
 }
 
 void es_GxCommand(GxCommand* command) {
-    command->cmdId = ENDIAN_SWAP(command->cmdId);
-    command->align32 = ENDIAN_SWAP(command->align32);
 
-    switch (command->cmdId) {
+    command->cmdId = SWAP_BE(command->cmdId);
+    command->align32 = SWAP_BE(command->align32);
+    
+    //allow swap and reswap
+	uint32_t cmdid = command->cmdId;
+	if(cmdid > 0x1000) {
+		cmdid = SWAP_BE(cmdid);
+		if(cmdid > 0x1000) {	
+			fprintf(stderr, "cmdid too big\n");
+			return;
+		}
+	}
+
+    switch (cmdid) {
 		case 0x00:
-			command->data.cmd_type0.EEOffset = ENDIAN_SWAP(command->data.cmd_type0.EEOffset);
-            command->data.cmd_type0.FuncIDOffset = ENDIAN_SWAP(command->data.cmd_type0.FuncIDOffset);
+			command->cmd_type0.EEOffset = SWAP_BE(command->cmd_type0.EEOffset);
+            command->cmd_type0.FuncIDOffset = SWAP_BE(command->cmd_type0.FuncIDOffset);
 			break;
         case 0x08: case 0x09: case 0x10:
-            command->data.cmd_type1.cmdDataOffset = ENDIAN_SWAP(command->data.cmd_type1.cmdDataOffset);
-            command->data.cmd_type1.cmdDataCount = ENDIAN_SWAP(command->data.cmd_type1.cmdDataCount);
+            command->cmd_type1.DataOffset = SWAP_BE(command->cmd_type1.DataOffset);
+            command->cmd_type1.DataCount = SWAP_BE(command->cmd_type1.DataCount);
             break;
         case 0x01: case 0x03: case 0x06: case 0x0B: case 0x0C: case 0x0F:
         case 0x13: case 0x1C: case 0x1E: case 0x21: case 0x24: case 0x28: case 0x2A: case 0x2B:
-            command->data.cmd_type2.param = ENDIAN_SWAP(command->data.cmd_type2.param);
-            break;
-        case 0x14: case 0x15: case 0x1A: case 0x1B:
-            command->data.cmd_type3.param = ENDIAN_SWAP(command->data.cmd_type3.param);
+            command->cmd_type2.param = SWAP_BE(command->cmd_type2.param);
             break;
         case 0x07: case 0x11: case 0x1D: case 0x20:
-            command->data.cmd_type4.cmdDataOffset = ENDIAN_SWAP(command->data.cmd_type4.cmdDataOffset);
+            command->cmd_type4.DataOffset = SWAP_BE(command->cmd_type4.DataOffset);
             break;
         case 0x0A:
-            command->data.cmd_type5.param1 = ENDIAN_SWAP(command->data.cmd_type5.param1);
-            command->data.cmd_type5.param2 = ENDIAN_SWAP(command->data.cmd_type5.param2);
+            command->cmd_type5.param1 = SWAP_BE(command->cmd_type5.param1);
+            command->cmd_type5.param2 = SWAP_BE(command->cmd_type5.param2);
             break;
         case 0x0D: case 0x0E: case 0x22: case 0x23: case 0x25:
-            command->data.cmd_type6.param1 = ENDIAN_SWAP(command->data.cmd_type6.param1);
-            command->data.cmd_type6.param2 = ENDIAN_SWAP(command->data.cmd_type6.param2);
+            command->cmd_type6.param1 = SWAP_BE(command->cmd_type6.param1);
+            command->cmd_type6.param2 = SWAP_BE(command->cmd_type6.param2);
             break;
         default:
             break;
     }
+}
+
+void print_align(FILE *file, uint8_t * data, uint32_t size) {
+	if( !show_align ) return;
+	
+	fprintf(file, "\t\talign : \n");
+	
+	write_data(file, data, size, 1, 3);
 }
 
 int load_GxCfg(const char* filename, GxCfg_t* cfg) {
@@ -62,7 +79,8 @@ int load_GxCfg(const char* filename, GxCfg_t* cfg) {
         perror("Error opening file\n");
         return -1;
     }
-
+    
+    memset(cfg, 0, sizeof(GxCfg_t));
     if( fread(&cfg->header, sizeof(GxHeader), 1, file) != 1) {
 		perror("Error reading header\n");
 		goto end;
@@ -75,7 +93,7 @@ int load_GxCfg(const char* filename, GxCfg_t* cfg) {
         perror("Memory allocation error\n");
         goto end;
     }
-
+   
     for (uint32_t i = 0; i < cfg->header.cmdCount; i++) {
         if( fread(&cfg->commands[i].cmdId, sizeof(uint32_t), 1, file) != 1) {
 			perror("Error reading cmdId\n");
@@ -86,28 +104,27 @@ int load_GxCfg(const char* filename, GxCfg_t* cfg) {
 			goto end;
 		}
 		
-		int32_t cmdId = ENDIAN_SWAP(cfg->commands[i].cmdId);
-		
+		int32_t cmdId = SWAP_BE(cfg->commands[i].cmdId);
         switch (cmdId) 
 		{
 			case 0x00:
-				if( fread(&cfg->commands[i].data.cmd_type0.EEOffset, sizeof(int32_t), 1, file) != 1 ||
-					fread(&cfg->commands[i].data.cmd_type0.align, sizeof(int32_t), 1, file) != 1 ||
-					fread(&cfg->commands[i].data.cmd_type0.FuncIDOffset, sizeof(int64_t), 1, file) != 1 ) {
+				if( fread(&cfg->commands[i].cmd_type0.EEOffset, sizeof(int32_t), 1, file) != 1 ||
+					fread(&cfg->commands[i].cmd_type0.align, sizeof(int32_t), 1, file) != 1 ||
+					fread(&cfg->commands[i].cmd_type0.FuncIDOffset, sizeof(int64_t), 1, file) != 1 ) {
 					perror("Error reading cmd_type0\n");
 					goto end;
 				}
 				break;
             case 0x08: case 0x09: case 0x10:
-                if( fread(&cfg->commands[i].data.cmd_type1.cmdDataOffset, sizeof(int64_t), 1, file) != 1) {
-					perror("Error reading cmd_type1.cmdDataOffset\n");
+                if( fread(&cfg->commands[i].cmd_type1.DataOffset, sizeof(int64_t), 1, file) != 1) {
+					perror("Error reading cmd_type1.DataOffset\n");
 					goto end;
 				}
-                if( fread(&cfg->commands[i].data.cmd_type1.cmdDataCount, sizeof(int32_t), 1, file) != 1) {
-					perror("Error reading cmd_type1.cmdDataCount\n");
+                if( fread(&cfg->commands[i].cmd_type1.DataCount, sizeof(int32_t), 1, file) != 1) {
+					perror("Error reading cmd_type1.DataCount\n");
 					goto end;
 				}
-                if( fread(cfg->commands[i].data.cmd_type1.align, sizeof(uint8_t), 4, file) != 4) {
+                if( fread(cfg->commands[i].cmd_type1.align, sizeof(uint8_t), 4, file) != 4) {
 					perror("Error reading cmd_type1.align\n");
 					goto end;
 				}
@@ -115,92 +132,94 @@ int load_GxCfg(const char* filename, GxCfg_t* cfg) {
 				
 			case 0x01: case 0x03: case 0x06: case 0x0B: case 0x0C: case 0x0F:
             case 0x13: case 0x1C: case 0x1E: case 0x21: case 0x24: case 0x28: case 0x2A: case 0x2B:
-                if( fread(&cfg->commands[i].data.cmd_type2.param, sizeof(int32_t), 1, file) != 1  ) {
+                if( fread(&cfg->commands[i].cmd_type2.param, sizeof(int32_t), 1, file) != 1  ) {
 					perror("Error reading cmd_type2.param\n");
 					goto end;
 				}
-                if( fread(cfg->commands[i].data.cmd_type2.align, sizeof(uint8_t), 12, file) != 12 ) {
+                if( fread(cfg->commands[i].cmd_type2.align, sizeof(uint8_t), 12, file) != 12 ) {
 					perror("Error reading cmd_type2.align\n");
 					return -1;
 				}
                 break;
             case 0x02: case 0x04: case 0x05: case 0x12: case 0x16: case 0x17: case 0x18: case 0x19:
             case 0x1F: case 0x26: case 0x27: case 0x29:
-                if( fread(cfg->commands[i].data.align, sizeof(uint8_t), 16, file) != 16  ) {
-					perror("Error reading data.align\n");
+                if( fread(cfg->commands[i].align, sizeof(uint8_t), 16, file) != 16  ) {
+					perror("Error reading align\n");
 					goto end;
 				}
                 break;
             case 0x14: case 0x15: case 0x1A: case 0x1B:
-                if( fread(&cfg->commands[i].data.cmd_type3.param, sizeof(int8_t), 1, file) != 1  ) {
+                if( fread(&cfg->commands[i].cmd_type3.param, sizeof(int8_t), 1, file) != 1  ) {
 					perror("Error reading cmd_type3.param\n");
 					goto end;
 				}
-                if( fread(cfg->commands[i].data.cmd_type3.align, sizeof(uint8_t), 15, file) != 15  ) {
+                if( fread(cfg->commands[i].cmd_type3.align, sizeof(uint8_t), 15, file) != 15  ) {
 					perror("Error reading cmd_type3.align\n");
 					goto end;
 				}
                 break;
             case 0x07: case 0x11: case 0x1D: case 0x20:
-                if( fread(&cfg->commands[i].data.cmd_type4.cmdDataOffset, sizeof(int64_t), 1, file) != 1  ) {
-					perror("Error reading cmd_type4.cmdDataOffset\n");
+                if( fread(&cfg->commands[i].cmd_type4.DataOffset, sizeof(int64_t), 1, file) != 1  ) {
+					perror("Error reading cmd_type4.DataOffset\n");
 					goto end;
 				}
-                if( fread(cfg->commands[i].data.cmd_type4.align, sizeof(uint8_t), 8, file) != 8  ) {
+                if( fread(cfg->commands[i].cmd_type4.align, sizeof(uint8_t), 8, file) != 8  ) {
 					perror("Error reading cmd_type4.align\n");
 					goto end;
 				}
                 break;
             case 0x0A:
-                if( fread(&cfg->commands[i].data.cmd_type5.param1, sizeof(int16_t), 1, file) != 1  ) {
+                if( fread(&cfg->commands[i].cmd_type5.param1, sizeof(int16_t), 1, file) != 1  ) {
 					perror("Error reading cmd_type5.param1\n");
 					goto end;
 				}
-                if( fread(&cfg->commands[i].data.cmd_type5.param2, sizeof(int16_t), 1, file) != 1  ) {
+                if( fread(&cfg->commands[i].cmd_type5.param2, sizeof(int16_t), 1, file) != 1  ) {
 					perror("Error reading cmd_type5.param2\n");
 					goto end;
 				}
-                if( fread(cfg->commands[i].data.cmd_type5.align, sizeof(uint8_t), 12, file) != 12  ) {
+                if( fread(cfg->commands[i].cmd_type5.align, sizeof(uint8_t), 12, file) != 12  ) {
 					perror("Error reading cmd_type5.align\n");
 					goto end;
 				}
                 break;
             case 0x0D: case 0x0E: case 0x22: case 0x23: case 0x25:
-                if( fread(&cfg->commands[i].data.cmd_type6.param1, sizeof(int32_t), 1, file) != 1  ) {
+                if( fread(&cfg->commands[i].cmd_type6.param1, sizeof(int32_t), 1, file) != 1  ) {
 					perror("Error reading md_type5.param1\n");
 					goto end;
 				}
-                if( fread(&cfg->commands[i].data.cmd_type6.param2, sizeof(int32_t), 1, file) != 1  ) {
+                if( fread(&cfg->commands[i].cmd_type6.param2, sizeof(int32_t), 1, file) != 1  ) {
 					perror("Error reading cmd_type6.param2\n");
 					goto end;
 				}
-                if( fread(cfg->commands[i].data.cmd_type6.align, sizeof(uint8_t), 8, file) != 8  ) {
+                if( fread(cfg->commands[i].cmd_type6.align, sizeof(uint8_t), 8, file) != 8  ) {
 					perror("Error reading cmd_type6.align\n");
 					goto end;
 				}
                 break;
             default:
-				if( fread(cfg->commands[i].data.align, sizeof(uint8_t), 16, file) != 16  ) {
-					perror("Error reading data.align\n");
+				if( fread(cfg->commands[i].align, sizeof(uint8_t), 16, file) != 16  ) {
+					perror("Error reading align\n");
 					goto end;
 				}
                 break;
 		}
 		es_GxCommand(&cfg->commands[i]);
 	}
-	
 	ret=0;
-	
 end:
-
-    fclose(file);
+    FCLOSE(file);
     return ret;
 }
 
-int save_GxCfg(const char* filename, const GxCfg_t* cfg) {
+int save_GxCfg(const char* filename, GxCfg_t* cfg) {
 	
 	int ret=-1;
-	
+    
+    uint32_t cmdCount = cfg->header.cmdCount;
+    if( cmdCount == 0 ) {
+        return 0;
+    }
+
     FILE* file = fopen(filename, "wb");
     if (!file) {
         perror("Error opening file for writing\n");
@@ -208,13 +227,18 @@ int save_GxCfg(const char* filename, const GxCfg_t* cfg) {
     }
 
     // Write header
+    es_GxHeader(&cfg->header);
     if (fwrite(&cfg->header, sizeof(GxHeader), 1, file) != 1) {
         perror("Error writing header\n");
         goto end;
     }
 
     // Write commands
-    for (uint32_t i = 0; i < cfg->header.cmdCount; i++) {
+    for (uint32_t i = 0; i < cmdCount; i++) {
+
+        uint32_t cmdId = cfg->commands[i].cmdId;
+
+        es_GxCommand(&cfg->commands[i]);
         if (fwrite(&cfg->commands[i].cmdId, sizeof(uint32_t), 1, file) != 1) {
             perror("Error writing cmdId\n");
             goto end;
@@ -224,91 +248,100 @@ int save_GxCfg(const char* filename, const GxCfg_t* cfg) {
             goto end;
         }
 
-        switch (cfg->commands[i].cmdId) {
+        switch (cmdId) {
 			case 0x00:
-				if( fwrite(&cfg->commands[i].data.cmd_type0.EEOffset, sizeof(int32_t), 1, file) != 1 ||
-					fwrite(&cfg->commands[i].data.cmd_type0.align, sizeof(int32_t), 1, file) != 1 ||
-					fwrite(&cfg->commands[i].data.cmd_type0.FuncIDOffset, sizeof(int64_t), 1, file) != 1 ) {
+            {
+				if( fwrite(&cfg->commands[i].cmd_type0.EEOffset, sizeof(int32_t), 1, file) != 1 ||
+					fwrite(&cfg->commands[i].cmd_type0.align, sizeof(int32_t), 1, file) != 1 ||
+					fwrite(&cfg->commands[i].cmd_type0.FuncIDOffset, sizeof(int64_t), 1, file) != 1 ) {
 					perror("Error writing cmd_type0\n");
 					goto end;
 				}
 				break;
-				
+            }
             case 0x08: case 0x09: case 0x10:
-                if (fwrite(&cfg->commands[i].data.cmd_type1.cmdDataOffset, sizeof(int64_t), 1, file) != 1 ||
-                    fwrite(&cfg->commands[i].data.cmd_type1.cmdDataCount, sizeof(int32_t), 1, file) != 1 ||
-                    fwrite(cfg->commands[i].data.cmd_type1.align, sizeof(uint8_t), 4, file) != 4) {
+            {
+                if (fwrite(&cfg->commands[i].cmd_type1.DataOffset, sizeof(int64_t), 1, file) != 1 ||
+                    fwrite(&cfg->commands[i].cmd_type1.DataCount, sizeof(int32_t), 1, file) != 1 ||
+                    fwrite(cfg->commands[i].cmd_type1.align, sizeof(uint8_t), 4, file) != 4) {
                     perror("Error writing cmd_type1 data\n");
                     goto end;
                 }
                 break;
+            }
             case 0x01: case 0x03: case 0x06: case 0x0B: case 0x0C: case 0x0F:
             case 0x13: case 0x1C: case 0x1E: case 0x21: case 0x24: case 0x28: case 0x2A: case 0x2B:
-                if (fwrite(&cfg->commands[i].data.cmd_type2.param, sizeof(int32_t), 1, file) != 1 ||
-                    fwrite(cfg->commands[i].data.cmd_type2.align, sizeof(uint8_t), 12, file) != 12) {
+            {
+                if (fwrite(&cfg->commands[i].cmd_type2.param, sizeof(int32_t), 1, file) != 1 ||
+                    fwrite(cfg->commands[i].cmd_type2.align, sizeof(uint8_t), 12, file) != 12) {
                     perror("Error writing cmd_type2 data\n");
                     goto end;
                 }
                 break;
+            }
             case 0x02: case 0x04: case 0x05: case 0x12: case 0x16: case 0x17: case 0x18: case 0x19:
             case 0x1F: case 0x26: case 0x27: case 0x29:
-                if (fwrite(cfg->commands[i].data.align, sizeof(uint8_t), 16, file) != 16) {
-                    perror("Error writing data.align\n");
+            {
+                if (fwrite(cfg->commands[i].align, sizeof(uint8_t), 16, file) != 16) {
+                    perror("Error writing align\n");
                     goto end;
                 }
                 break;
+            }
             case 0x14: case 0x15: case 0x1A: case 0x1B:
-                if (fwrite(&cfg->commands[i].data.cmd_type3.param, sizeof(int8_t), 1, file) != 1 ||
-                    fwrite(cfg->commands[i].data.cmd_type3.align, sizeof(uint8_t), 15, file) != 15) {
+            {
+                if (fwrite(&cfg->commands[i].cmd_type3.param, sizeof(int8_t), 1, file) != 1 ||
+                    fwrite(cfg->commands[i].cmd_type3.align, sizeof(uint8_t), 15, file) != 15) {
                     perror("Error writing cmd_type3 data\n");
                     goto end;
                 }
                 break;
+            }
             case 0x07: case 0x11: case 0x1D: case 0x20:
-                if (fwrite(&cfg->commands[i].data.cmd_type4.cmdDataOffset, sizeof(int64_t), 1, file) != 1 ||
-                    fwrite(cfg->commands[i].data.cmd_type4.align, sizeof(uint8_t), 8, file) != 8) {
+            {
+                if (fwrite(&cfg->commands[i].cmd_type4.DataOffset, sizeof(int64_t), 1, file) != 1 ||
+                    fwrite(cfg->commands[i].cmd_type4.align, sizeof(uint8_t), 8, file) != 8) {
                     perror("Error writing cmd_type4 data\n");
                     goto end;
                 }
                 break;
+            }
             case 0x0A:
-                if (fwrite(&cfg->commands[i].data.cmd_type5.param1, sizeof(int16_t), 1, file) != 1 ||
-                    fwrite(&cfg->commands[i].data.cmd_type5.param2, sizeof(int16_t), 1, file) != 1 ||
-                    fwrite(cfg->commands[i].data.cmd_type5.align, sizeof(uint8_t), 12, file) != 12) {
+            {
+                if (fwrite(&cfg->commands[i].cmd_type5.param1, sizeof(int16_t), 1, file) != 1 ||
+                    fwrite(&cfg->commands[i].cmd_type5.param2, sizeof(int16_t), 1, file) != 1 ||
+                    fwrite(cfg->commands[i].cmd_type5.align, sizeof(uint8_t), 12, file) != 12) {
                     perror("Error writing cmd_type5 data\n");
                     goto end;
                 }
                 break;
+            }
             case 0x0D: case 0x0E: case 0x22: case 0x23: case 0x25:
-                if (fwrite(&cfg->commands[i].data.cmd_type6.param1, sizeof(int32_t), 1, file) != 1 ||
-                    fwrite(&cfg->commands[i].data.cmd_type6.param2, sizeof(int32_t), 1, file) != 1 ||
-                    fwrite(cfg->commands[i].data.cmd_type6.align, sizeof(uint8_t), 8, file) != 8) {
+            {
+                if (fwrite(&cfg->commands[i].cmd_type6.param1, sizeof(int32_t), 1, file) != 1 ||
+                    fwrite(&cfg->commands[i].cmd_type6.param2, sizeof(int32_t), 1, file) != 1 ||
+                    fwrite(cfg->commands[i].cmd_type6.align, sizeof(uint8_t), 8, file) != 8) {
                     perror("Error writing cmd_type6 data\n");
                     goto end;
                 }
                 break;
+            }
             default:
-                if (fwrite(cfg->commands[i].data.align, sizeof(uint8_t), 16, file) != 16) {
-                    perror("Error writing default data.align\n");
+            {
+                if (fwrite(cfg->commands[i].align, sizeof(uint8_t), 16, file) != 16) {
+                    perror("Error writing default align\n");
                     goto end;
                 }
                 break;
+            }
         }
     }
-	
 	ret=0;
-	
-end:
-    fclose(file);
-    return ret;
-}
 
-void print_align(FILE *file, uint8_t * data, uint32_t size) {
-	if( !show_align ) return;
-	
-	fprintf(file, "\t\talign : \n");
-	
-	write_data(file, data, size, 1, 3);
+end:
+
+    FCLOSE(file);
+    return ret;
 }
 
 int GxCfg_to_txt(FILE* file, const GxCfg_t* cfg) {
@@ -326,48 +359,48 @@ int GxCfg_to_txt(FILE* file, const GxCfg_t* cfg) {
 
         switch (cfg->commands[i].cmdId) {
 			case 0x00:
-				fprintf(file, "\t\tEEOffset : 0x%08llX\n", cfg->commands[i].data.cmd_type0.EEOffset);
-                print_align(file, cfg->commands[i].data.cmd_type0.align, sizeof(cfg->commands[i].data.cmd_type0.align));
-				fprintf(file, "\t\tFuncIDOffset  : 0x%016llX\n", cfg->commands[i].data.cmd_type0.FuncIDOffset);
+				fprintf(file, "\t\tEEOffset : 0x%08llX\n", cfg->commands[i].cmd_type0.EEOffset);
+                print_align(file, cfg->commands[i].cmd_type0.align, sizeof(cfg->commands[i].cmd_type0.align));
+				fprintf(file, "\t\tFuncIDOffset  : 0x%016llX\n", cfg->commands[i].cmd_type0.FuncIDOffset);
 				break;
             case 0x08: case 0x09: case 0x10:
-                fprintf(file, "\t\tcmdDataOffset : 0x%016llX\n", cfg->commands[i].data.cmd_type1.cmdDataOffset);
-                fprintf(file, "\t\tcmdDataCount  : 0x%08lX\n", cfg->commands[i].data.cmd_type1.cmdDataCount);
-				print_align(file, cfg->commands[i].data.cmd_type1.align, sizeof(cfg->commands[i].data.cmd_type1.align));
+                fprintf(file, "\t\tDataOffset : 0x%016llX\n", cfg->commands[i].cmd_type1.DataOffset);
+                fprintf(file, "\t\tDataCount  : 0x%08lX\n", cfg->commands[i].cmd_type1.DataCount);
+				print_align(file, cfg->commands[i].cmd_type1.align, sizeof(cfg->commands[i].cmd_type1.align));
                 break;
 
             case 0x01: case 0x03: case 0x06: case 0x0B: case 0x0C: case 0x0F:
             case 0x13: case 0x1C: case 0x1E: case 0x21: case 0x24: case 0x28: case 0x2A: case 0x2B:
-                fprintf(file, "\t\tparam : 0x%08lX\n", cfg->commands[i].data.cmd_type2.param);
-				print_align(file, cfg->commands[i].data.cmd_type2.align, sizeof(cfg->commands[i].data.cmd_type2.align));
+                fprintf(file, "\t\tparam : 0x%08lX\n", cfg->commands[i].cmd_type2.param);
+				print_align(file, cfg->commands[i].cmd_type2.align, sizeof(cfg->commands[i].cmd_type2.align));
                 break;
 
             case 0x14: case 0x15: case 0x1A: case 0x1B:
-                fprintf(file, "\t\tparam : 0x02%X\n", cfg->commands[i].data.cmd_type3.param);
-				print_align(file, cfg->commands[i].data.cmd_type3.align, sizeof(cfg->commands[i].data.cmd_type3.align));
+                fprintf(file, "\t\tparam : 0x02%X\n", cfg->commands[i].cmd_type3.param);
+				print_align(file, cfg->commands[i].cmd_type3.align, sizeof(cfg->commands[i].cmd_type3.align));
                 break;
             case 0x07: case 0x11: case 0x1D: case 0x20:
-                fprintf(file, "\t\tcmdDataOffset : 0x%016llX\n", cfg->commands[i].data.cmd_type4.cmdDataOffset);
-				print_align(file, cfg->commands[i].data.cmd_type4.align, sizeof(cfg->commands[i].data.cmd_type4.align));
+                fprintf(file, "\t\tDataOffset : 0x%016llX\n", cfg->commands[i].cmd_type4.DataOffset);
+				print_align(file, cfg->commands[i].cmd_type4.align, sizeof(cfg->commands[i].cmd_type4.align));
                 break;
             case 0x0A:
-                fprintf(file, "\t\tparam1 : 0x%04X\n", cfg->commands[i].data.cmd_type5.param1);
-                fprintf(file, "\t\tparam2 : 0x%04X\n", cfg->commands[i].data.cmd_type5.param2);
-				print_align(file, cfg->commands[i].data.cmd_type5.align, sizeof(cfg->commands[i].data.cmd_type5.align));
+                fprintf(file, "\t\tparam1 : 0x%04X\n", cfg->commands[i].cmd_type5.param1);
+                fprintf(file, "\t\tparam2 : 0x%04X\n", cfg->commands[i].cmd_type5.param2);
+				print_align(file, cfg->commands[i].cmd_type5.align, sizeof(cfg->commands[i].cmd_type5.align));
                 break;
             case 0x0D: case 0x0E: case 0x22: case 0x23: case 0x25:
-                fprintf(file, "\t\tparam1 : 0x%08lX\n", cfg->commands[i].data.cmd_type6.param1);
-                fprintf(file, "\t\tparam2 : 0x%08lX\n", cfg->commands[i].data.cmd_type6.param2);
-				print_align(file, cfg->commands[i].data.cmd_type6.align, sizeof(cfg->commands[i].data.cmd_type6.align));
+                fprintf(file, "\t\tparam1 : 0x%08lX\n", cfg->commands[i].cmd_type6.param1);
+                fprintf(file, "\t\tparam2 : 0x%08lX\n", cfg->commands[i].cmd_type6.param2);
+				print_align(file, cfg->commands[i].cmd_type6.align, sizeof(cfg->commands[i].cmd_type6.align));
                 break;
 			case 0x02: case 0x04: case 0x05: case 0x12: case 0x16: case 0x17: case 0x18: case 0x19:
             case 0x1F: case 0x26: case 0x27: case 0x29:
 				fprintf(file, "\t\tNone\n");
-				print_align(file, cfg->commands[i].data.align, sizeof(cfg->commands[i].data.align));
+				print_align(file, cfg->commands[i].align, sizeof(cfg->commands[i].align));
 				break;
             default:
                 fprintf(file, "\t\tUnknown command id 0x%X\n", cfg->commands[i].cmdId);
-				print_align(file, cfg->commands[i].data.align, sizeof(cfg->commands[i].data.align));
+				print_align(file, cfg->commands[i].align, sizeof(cfg->commands[i].align));
 				
                 break;
         }
@@ -443,5 +476,56 @@ int gxcfg_log(char *filename, char *logpath)
 
     free_GxCfg(&cfg);
     
+    return 0;
+}
+
+int gxcfg_gxcfg(char *filepath, char *dirOut) {
+    GxCfg_t cfg;
+    if (load_GxCfg(filepath, &cfg) != 0) {
+        fprintf(stderr, "Failed to load file: %s\n", filepath);
+        return -1;
+    }
+
+    char outpath[1024];
+    snprintf(outpath, sizeof(outpath), "%s/%s", dirOut, custom_basename(filepath));
+
+    if (save_GxCfg(outpath, &cfg) != 0) {
+        fprintf(stderr, "Failed to save file: %s\n", outpath);
+        free_GxCfg(&cfg);
+        return -1;
+    }
+
+    free_GxCfg(&cfg);
+
+    unsigned char md5_filepath[MD5_DIGEST_LENGTH];
+    unsigned char md5_outpath[MD5_DIGEST_LENGTH];
+/*
+    if (calculate_md5(filepath, md5_filepath) != 0) {
+        fprintf(stderr, "Failed to calculate MD5 for file: %s\n", filepath);
+        return -1;
+    }
+*/
+    struct stat st;
+    if (stat(outpath, &st) != 0) {
+        perror("Failed to get file size");
+        return -1;
+    }
+    size_t outpath_size = st.st_size;
+
+    if( get_md5(filepath, md5_filepath, outpath_size) != 0) {
+        fprintf(stderr, "Failed to get MD5 for file: %s\n", filepath);
+        return -1;
+    }
+
+    if (calculate_md5(outpath, md5_outpath) != 0) {
+        fprintf(stderr, "Failed to calculate MD5 for file: %s\n", outpath);
+        return -1;
+    }
+
+    if (memcmp(md5_filepath, md5_outpath, MD5_DIGEST_LENGTH) != 0) {
+        fprintf(stderr, "MD5 mismatch between %s and %s\n", filepath, outpath);
+        return -1;
+    }
+
     return 0;
 }

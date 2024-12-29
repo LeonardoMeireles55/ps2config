@@ -54,4 +54,9 @@ typedef int64_t 	s64;
 #define GX_TXT 8
 #define SOFT_TXT 9
 
+// to test functions load/save
+#define NET_NET 100
+#define GX_GX 101
+#define SOFT_SOFT 102
+
 #endif

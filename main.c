@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 
 #include "common.h"
+#include "util.h"
 #include "gx.h"
 #include "net.h"
 
@@ -173,24 +174,6 @@ void getid(s32 *g, s32 *s, s32 *n) {
 	}
 }
 
-void write_data(FILE *file, uint8_t *data, uint32_t size, uint8_t check_align, uint8_t indent) {
-	uint8_t flag=0;
-	for(int j=0; j < indent; j++) fprintf(file, "\t");
-	
-	for(int i=0; i < size; i++) {
-		fprintf(file, "%02X", data[i]);
-		if( data[i] != 0) flag=1;
-		if( size <= i+1) break;
-		if( (i+1)%16 == 0 ) {
-			fprintf(file, "\n");
-			for(int j=0; j < indent; j++) fprintf(file, "\t");
-		} else 
-		if( (i+1)%4 == 0 ) fprintf(file, " ");
-	}
-	if( flag && check_align ) fprintf(file, "  WARNING!");
-	fprintf(file, "\n");
-}
-
 // type 1: SLES-12345
 // type 2: SLES_123.45
 int check_TitleID_sanity(const char *title, int type) {
@@ -247,7 +230,6 @@ int check_TitleID_sanity(const char *title, int type) {
 	return 0;
 }
 
-
 uint64_t getTitleHash(const char* title) {
 
 	if( check_TitleID_sanity(title, 2) != 0) {
@@ -286,7 +268,9 @@ uint64_t getTitleHash(const char* title) {
 // from SLES-12345 to SLES_123.45
 int changeTitleIDFormat(const char *input_id, char *output_id) {
     
-	check_TitleID_sanity(input_id, 1);
+	if( check_TitleID_sanity(input_id, 1) != 0) {
+		return -1;
+	}
 
     strncpy(output_id, input_id, 4);
     output_id[4] = '_';
@@ -306,12 +290,12 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 		perror("convert_NetToGx invalid input"); 
 		goto end;
 	}
-	
+
+	memset(&gxCfg->header, 0, sizeof(gxCfg->header));
 	gxCfg->header.dataOffset = GX_DATA_OFFSET;
 	gxCfg->header.cmdCount=0;
-	
-	u32 DATA_OFFSET = GX_DATA_OFFSET + 0x18;
-	
+	gxCfg->header.hashTitle=0;
+
 	gxCfg->commands = calloc(0x400000, 1);
 	if (!gxCfg->commands) {
 		perror("Error allocating memory for GX commands");
@@ -320,7 +304,7 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 
 	for (uint32_t i = 0; i < netCfg->cmdCount; i++) {
 		NetCommand* netCmd = &netCfg->commands[i];
-		GxCommand* gxCmd = &gxCfg->commands[i];
+		GxCommand* gxCmd = &gxCfg->commands[gxCfg->header.cmdCount];
 
 		s32 netID = netCmd->cmdid;
 		s32 gxID = -1;
@@ -348,19 +332,19 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 					//fprintf(stderr, "Unsupported NET command ID: 0x%02X | FunctionID: 0x%08lX\n", netID, netCmd->cmd_01.hackid);
 					continue;
 				}
-				gxCmd->data.cmd_type0.EEOffset = netCmd->cmd_01.offset;
-				gxCmd->data.cmd_type0.FuncIDOffset = GxFuncHackIdOffset[netCmd->cmd_01.hackid];
+				gxCmd->cmd_type0.EEOffset = netCmd->cmd_01.offset;
+				gxCmd->cmd_type0.FuncIDOffset = GxFuncHackIdOffset[netCmd->cmd_01.hackid];
 				break;
 				
 			//u32
 			case 0x01: case 0x03: case 0x06: case 0x0B: case 0x0C: case 0x0F:
             case 0x13: case 0x1C: case 0x1E: case 0x21: case 0x24: case 0x28: case 0x2A: case 0x2B:
-				gxCmd->data.cmd_type2.param = netCmd->oneU32.param;
+				gxCmd->cmd_type2.param = netCmd->oneU32.param;
 				break;
 			
 			//u64 data //u32 count
 			case 0x08: case 0x09: case 0x10:
-				gxCmd->data.cmd_type1.cmdDataOffset = GX_DATA_OFFSET + 0x18*(gxCfg->header.cmdCount+1);
+				gxCmd->cmd_type1.DataOffset = GX_DATA_OFFSET + 0x18*(gxCfg->header.cmdCount+1);
 				uint32_t dataCount;
 				
 				if( gxID == 0x08 ) { //net 09
@@ -372,32 +356,34 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 				if( gxID == 0x10 ) { // net 12
 					dataCount = netCmd->oneArrayU32.count;
 				}
-				gxCmd->data.cmd_type1.cmdDataCount = dataCount;
+				gxCmd->cmd_type1.DataCount = dataCount;
                 break;
 
-			// u8 net 16 17 1D 1E
-            case 0x14: case 0x15: case 0x1A: case 0x1B:
-                gxCmd->data.cmd_type3.param = netCmd->oneU32.param;
+			 case 0x07:
+				gxCmd->cmd_type4.DataOffset = GX_DATA_OFFSET + 0x18*(gxCfg->header.cmdCount+1);
 				break;
 			
-            case 0x07:
-				gxCmd->data.cmd_type4.cmdDataOffset = GX_DATA_OFFSET + 0x18*(gxCfg->header.cmdCount+1);
-            
+			// u8 net 16 17 1D 1E
+            case 0x14: case 0x15: case 0x1A: case 0x1B:
+                gxCmd->cmd_type3.param = netCmd->oneU32.param;
+				break;
+			
+           
 			// u64 net 13 20 24
 			case 0x11: case 0x1D: case 0x20:
-				gxCmd->data.cmd_type4.cmdDataOffset = netCmd->oneU64.param; // it's not dataoffset, tofix
+				gxCmd->cmd_type4.DataOffset = netCmd->oneU64.param; // it's not dataoffset, tofix
                 break;
 			
 			// 2 u16 net 0C
             case 0x0A:
-				gxCmd->data.cmd_type5.param1 = netCmd->twoU16.param1;
-				gxCmd->data.cmd_type5.param2 = netCmd->twoU16.param2;
+				gxCmd->cmd_type5.param1 = netCmd->twoU16.param1;
+				gxCmd->cmd_type5.param2 = netCmd->twoU16.param2;
                 break;
 				
 			// 2 u32 
             case 0x0D: case 0x0E: case 0x22: case 0x23: case 0x25:
-				gxCmd->data.cmd_type6.param1 =  netCmd->twoU32.param1;
-				gxCmd->data.cmd_type6.param1 =  netCmd->twoU32.param1;
+				gxCmd->cmd_type6.param1 = netCmd->twoU32.param1;
+				gxCmd->cmd_type6.param2 = netCmd->twoU32.param2;
                 break;
 			case 0x02: case 0x04: case 0x05: case 0x12: case 0x16: case 0x17: case 0x18: case 0x19:
             case 0x1F: case 0x26: case 0x27: case 0x29:
@@ -409,15 +395,9 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 		gxCfg->header.cmdCount++;
 	}
 
-
 	ret=0;
 end:
 	return ret;
-}
-
-char* custom_basename(char* path) {
-    char* base = strrchr(path, '/');
-    return base ? base + 1 : path;
 }
 
 int convert(char *fileIn, char *dirOut, uint8_t type)
@@ -425,13 +405,7 @@ int convert(char *fileIn, char *dirOut, uint8_t type)
 	int ret=-1;
 	GxCfg_t gxcfg;
 	NetCfg_t netcfg;
-	struct stat st = {0};
-	if (stat(dirOut, &st) == -1) {
-		if (mkdir(dirOut, 0777) != 0) {
-			perror("mkdir");
-			goto end;
-		}
-	}
+
 	switch(type)
 	{
 		case NET_GX:
@@ -479,9 +453,9 @@ end:
 	return ret;
 }
 
-void scan_task(const char *dir, void (*func)(), const char *arg1, uint8_t arg2) {
-    struct dirent *entry;
-    DIR *dp = opendir(dir);
+void scan_task(const char *in, void (*func)(), const char *arg1, uint8_t arg2) {
+	struct dirent *entry;
+    DIR *dp = opendir(in);
 
     if (dp == NULL) {
         perror("opendir");
@@ -493,7 +467,7 @@ void scan_task(const char *dir, void (*func)(), const char *arg1, uint8_t arg2) 
 		if(!strcmp(entry->d_name, "..") || !strcmp(entry->d_name, ".")) continue;
 
 		char filepath[1024];
-		snprintf(filepath, sizeof(filepath), "%s/%s", dir, entry->d_name);
+		snprintf(filepath, sizeof(filepath), "%s/%s", in, entry->d_name);
 
 		if(arg1 != NULL && arg2 != 0) {
 			func(filepath, arg1, arg2);
@@ -512,8 +486,7 @@ void scan_task(const char *dir, void (*func)(), const char *arg1, uint8_t arg2) 
     closedir(dp);
 }
 
-static void print_help()
-{
+static void print_help() {
 	printf( "\nUsage of ps2config-cmd\n"
 			"    Format\n"
 			"        ps2config-cmd.exe [option] <mode> <input> <output>\n"
@@ -523,19 +496,20 @@ static void print_help()
 			"        -h, --help           Show this help text.\n"
 			"        -v, --verbose        Make the operations more talkative.\n"
 			"    Mode\n"
-			"        -0, --NET_GX         Convert from NET to GX.\n"
-			"        -1, --NET_SOFT       Convert from NET to SOFT.\n"
-			"        -2, --GX_SOFT        Convert from GX to SOFT.\n"
-			"        -3, --GX_NET         Convert from GX to NET.\n"
-			"        -4, --SOFT_NET       Convert from SOFT to NET.\n"
-			"        -5, --SOFT_GX        Convert from SOFT to GX.\n"
-			"        -6, --NET_TXT        Extract data from NET to TXT.\n"
-			"        -7, --GX_TXT         Extract data from GX to TXT.\n"
-			"        -8, --SOFT_TXT       Extract data from SOFT to TXT.\n"
+			"        -1, --NET_GX         Convert from NET to GX.\n"
+			"        -2, --NET_SOFT       Convert from NET to SOFT.\n"
+			"        -3, --GX_SOFT        Convert from GX to SOFT.\n"
+			"        -4, --GX_NET         Convert from GX to NET.\n"
+			"        -5, --SOFT_NET       Convert from SOFT to NET.\n"
+			"        -6, --SOFT_GX        Convert from SOFT to GX.\n"
+			"        -7, --NET_TXT        Extract data from NET to TXT.\n"
+			"        -8, --GX_TXT         Extract data from GX to TXT.\n"
+			"        -9, --SOFT_TXT       Extract data from SOFT to TXT.\n"
 			 );
 }
 
 int main(int argc, char *argv[]) {
+	
 	if (argc < 4) {
 		print_help();
 		return 1;
@@ -551,35 +525,54 @@ int main(int argc, char *argv[]) {
 			return 0;
 		} else if (strcmp(argv[i], "-v") == 0 || strcmp(argv[i], "--verbose") == 0) {
 			verbose = 1;
-		} else if (strcmp(argv[i], "-0") == 0 || strcmp(argv[i], "--NET_GX") == 0) {
+		} else if (strcmp(argv[i], "-1") == 0 || strcmp(argv[i], "--NET_GX") == 0) {
 			mode = NET_GX;
-		} else if (strcmp(argv[i], "-1") == 0 || strcmp(argv[i], "--NET_SOFT") == 0) {
+		} else if (strcmp(argv[i], "-2") == 0 || strcmp(argv[i], "--NET_SOFT") == 0) {
 			mode = NET_SOFT;
-		} else if (strcmp(argv[i], "-2") == 0 || strcmp(argv[i], "--GX_SOFT") == 0) {
+		} else if (strcmp(argv[i], "-3") == 0 || strcmp(argv[i], "--GX_SOFT") == 0) {
 			mode = GX_SOFT;
-		} else if (strcmp(argv[i], "-3") == 0 || strcmp(argv[i], "--GX_NET") == 0) {
+		} else if (strcmp(argv[i], "-4") == 0 || strcmp(argv[i], "--GX_NET") == 0) {
 			mode = GX_NET;
-		} else if (strcmp(argv[i], "-4") == 0 || strcmp(argv[i], "--SOFT_NET") == 0) {
+		} else if (strcmp(argv[i], "-5") == 0 || strcmp(argv[i], "--SOFT_NET") == 0) {
 			mode = SOFT_NET;
-		} else if (strcmp(argv[i], "-5") == 0 || strcmp(argv[i], "--SOFT_GX") == 0) {
+		} else if (strcmp(argv[i], "-6") == 0 || strcmp(argv[i], "--SOFT_GX") == 0) {
 			mode = SOFT_GX;
-		} else if (strcmp(argv[i], "-6") == 0 || strcmp(argv[i], "--NET_TXT") == 0) {
+		} else if (strcmp(argv[i], "-7") == 0 || strcmp(argv[i], "--NET_TXT") == 0) {
 			mode = NET_TXT;
-		} else if (strcmp(argv[i], "-7") == 0 || strcmp(argv[i], "--GX_TXT") == 0) {
+		} else if (strcmp(argv[i], "-8") == 0 || strcmp(argv[i], "--GX_TXT") == 0) {
 			mode = GX_TXT;
-		} else if (strcmp(argv[i], "-8") == 0 || strcmp(argv[i], "--SOFT_TXT") == 0) {
+		} else if (strcmp(argv[i], "-9") == 0 || strcmp(argv[i], "--SOFT_TXT") == 0) {
 			mode = SOFT_TXT;
+		} else if (strcmp(argv[i], "-100") == 0 || strcmp(argv[i], "--NET_NET") == 0) {
+			mode = NET_NET;
+		} else if (strcmp(argv[i], "-101") == 0 || strcmp(argv[i], "--GX_GX") == 0) {
+			mode = GX_GX;
+		} else if (strcmp(argv[i], "-102") == 0 || strcmp(argv[i], "--SOFT_SOFT") == 0) {
+			mode = SOFT_SOFT;
 		} else if (input == NULL) {
 			input = argv[i];
 		} else if (output == NULL) {
 			output = argv[i];
 		}
 	}
+	
 
 	if (mode == -1 || input == NULL || output == NULL) {
 		fprintf(stderr, "Invalid arguments\n");
 		print_help();
 		return 1;
+	}
+
+	if( isDirExist(input) != 0 ) {
+		fprintf(stderr, "Input directory not found: %s\n", input);
+		return 1;
+	}
+	if( isDirExist(output) != 0 ) {
+		printf("Output directory not found...\nCreating output directory: %s\n", output);
+		if (mkdir(output, 0777) != 0) {
+			perror("mkdir");
+			return 1;
+		}
 	}
 
 	if (verbose) {
@@ -602,6 +595,21 @@ int main(int argc, char *argv[]) {
 			scan_task(input, (void (*)())convert, output, mode); 
 			break;
 		}
+		case NET_NET:
+		{
+			scan_task(input, (void (*)())netcfg_netcfg, output, 0); 
+			break;
+		}
+		case GX_GX: 
+		{
+			scan_task(input, (void (*)())gxcfg_gxcfg, output, 0); 
+			break;
+		}
+		case SOFT_SOFT:
+		{
+			fprintf(stderr, "SOFT_SOFT not implemented.\n");
+			break;
+		}
 		case NET_TXT:
 		{
 			scan_task(input, (void (*)())netcfg_log, output, 0); 
@@ -618,12 +626,10 @@ int main(int argc, char *argv[]) {
 			break;
 		}
 		default:
+		{
 			fprintf(stderr, "Invalid mode: %d\n", mode);
 			return 1;
-	}
-	if (convert(input, output, mode) != 0) {
-		fprintf(stderr, "Conversion failed\n");
-		return 1;
+		}
 	}
 
 	FCLOSE(gxLog);

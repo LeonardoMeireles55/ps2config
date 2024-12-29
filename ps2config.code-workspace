@@ -29,7 +29,10 @@
             "bitset": "c",
             "chrono": "c",
             "algorithm": "c",
-            "random": "c"
+            "random": "c",
+            "common.h": "c",
+            "md5.h": "c",
+            "evp.h": "c"
         }
     }
 }
