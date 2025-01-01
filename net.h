@@ -11,36 +11,35 @@ typedef struct {
             uint32_t param;
         } oneU32;
         struct {
-            uint32_t param1;
-            uint32_t param2;
+            uint32_t param[2];
         } twoU32;
         struct {
             uint32_t offset;
-            uint32_t hackid;
+            uint32_t FuncId;
         } cmd_01;
         struct {
             char titleID[10];
         } cmd_00;
         struct {
-            uint64_t ReplaceDataMask;
-            uint64_t ReplaceData;
-            uint64_t OriginalDataMask;
-            uint64_t OriginalData;
+            uint32_t ReplaceDataMask[2];
+            uint32_t ReplaceData[2];
+            uint32_t OriginalDataMask[2];
+            uint32_t OriginalData[2];
         } cmd_08;
         struct {
             uint32_t count;
             struct {
                 uint32_t offset;
-                uint8_t OriginalData[8];
-                uint8_t ReplaceData[8];
+                uint32_t OriginalData[2];
+                uint32_t ReplaceData[2];
             } data[];
         } cmd_09;
         struct {
             uint32_t count;
             struct {
                 uint32_t offset;
-                uint8_t OriginalData[4];
-                uint8_t ReplaceData[4];
+                uint32_t OriginalData;
+                uint32_t ReplaceData;
             } data[];
         } cmd_0A;
         struct {
@@ -64,8 +63,7 @@ typedef struct {
             uint32_t data[0x10];
         } cmd_4B;
         struct {
-            uint16_t param1;
-            uint16_t param2;
+            uint16_t param[2];
         } twoU16;
         struct {
             uint32_t count;

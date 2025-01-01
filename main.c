@@ -14,8 +14,7 @@ FILE *netLog=NULL;
 FILE *gxLog=NULL;
 int verbose=0;
 
-#define GX_DATA_OFFSET 0x00341178
-s64 GxFuncHackIdOffset[] = {0x36B40,
+s64 GxFuncFuncIdOffset[] = {0x36B40,
 							0x35FB0,
 							0x34068,
 							0x34144,
@@ -285,7 +284,7 @@ int changeTitleIDFormat(const char *input_id, char *output_id) {
 int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 	
 	int ret=-1;
-	
+
 	if (!netCfg || !gxCfg) {
 		perror("convert_NetToGx invalid input"); 
 		goto end;
@@ -328,18 +327,18 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 
 		switch (gxID) {
 			case 0x00: // net 0x01
-				if( 0x34 <= netCmd->cmd_01.hackid) {
-					//fprintf(stderr, "Unsupported NET command ID: 0x%02X | FunctionID: 0x%08lX\n", netID, netCmd->cmd_01.hackid);
+				if( 0x34 <= netCmd->cmd_01.FuncId) {
+					//fprintf(stderr, "Unsupported NET command ID: 0x%02X | FunctionID: 0x%08lX\n", netID, netCmd->cmd_01.FuncId);
 					continue;
 				}
-				gxCmd->cmd_type0.EEOffset = netCmd->cmd_01.offset;
-				gxCmd->cmd_type0.FuncIDOffset = GxFuncHackIdOffset[netCmd->cmd_01.hackid];
+				gxCmd->cmd_00.EEOffset = netCmd->cmd_01.offset;
+				gxCmd->cmd_00.FuncIDOffset = GxFuncFuncIdOffset[netCmd->cmd_01.FuncId];
 				break;
 				
 			//u32
 			case 0x01: case 0x03: case 0x06: case 0x0B: case 0x0C: case 0x0F:
             case 0x13: case 0x1C: case 0x1E: case 0x21: case 0x24: case 0x28: case 0x2A: case 0x2B:
-				gxCmd->cmd_type2.param = netCmd->oneU32.param;
+				gxCmd->oneU32.param = netCmd->oneU32.param;
 				break;
 			
 			//u64 data //u32 count
@@ -365,7 +364,7 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 			
 			// u8 net 16 17 1D 1E
             case 0x14: case 0x15: case 0x1A: case 0x1B:
-                gxCmd->cmd_type3.param = netCmd->oneU32.param;
+                gxCmd->oneU32.param = netCmd->oneU32.param;
 				break;
 			
            
@@ -376,15 +375,15 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 			
 			// 2 u16 net 0C
             case 0x0A:
-				gxCmd->cmd_type5.param1 = netCmd->twoU16.param1;
-				gxCmd->cmd_type5.param2 = netCmd->twoU16.param2;
-                break;
+				gxCfg->commands[gxCfg->header.cmdCount].twoU16.param[0] = netCmd->twoU16.param[0];
+				gxCfg->commands[gxCfg->header.cmdCount].twoU16.param[1] = netCmd->twoU16.param[1];
+				break;
 				
 			// 2 u32 
             case 0x0D: case 0x0E: case 0x22: case 0x23: case 0x25:
-				gxCmd->cmd_type6.param1 = netCmd->twoU32.param1;
-				gxCmd->cmd_type6.param2 = netCmd->twoU32.param2;
-                break;
+				gxCmd->twoU32.param[0] = netCmd->twoU32.param[0];
+				gxCmd->twoU32.param[1] = netCmd->twoU32.param[1];
+				break;
 			case 0x02: case 0x04: case 0x05: case 0x12: case 0x16: case 0x17: case 0x18: case 0x19:
             case 0x1F: case 0x26: case 0x27: case 0x29:
 				break;
@@ -395,6 +394,36 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 		gxCfg->header.cmdCount++;
 	}
 
+	uint32_t DATA_OFFSET = GX_DATA_OFFSET + 0x18*gxCfg->header.cmdCount;
+	for( uint32_t i=0; i<gxCfg->header.cmdCount; i++) {
+		GxCommand* gxCmd = &gxCfg->commands[i];
+		switch(gxCmd->cmdId) {
+			case 0x08:
+				gxCmd->cmd_type1.DataOffset = DATA_OFFSET;
+				break;
+			case 0x09:
+				gxCmd->cmd_type1.DataOffset = DATA_OFFSET;
+				break;
+			case 0x10:
+				gxCmd->cmd_type1.DataOffset = DATA_OFFSET;
+				break;
+			case 0x07:
+				gxCmd->cmd_type4.DataOffset = DATA_OFFSET;
+				break;
+			case 0x11:
+				gxCmd->cmd_type4.DataOffset = DATA_OFFSET;
+				break;
+			case 0x1D:
+				gxCmd->cmd_type4.DataOffset = DATA_OFFSET;
+				break;
+			case 0x20:
+				gxCmd->cmd_type4.DataOffset = DATA_OFFSET;
+				break;
+			default:
+				fprintf(stderr, "Unhandled GX command ID: 0x%02X\n", gxCmd->cmdId);
+				break;
+		}
+	}
 	ret=0;
 end:
 	return ret;
@@ -558,8 +587,7 @@ int main(int argc, char *argv[]) {
 	
 
 	if (mode == -1 || input == NULL || output == NULL) {
-		fprintf(stderr, "Invalid arguments\n");
-		print_help();
+		fprintf(stderr, "Invalid arguments\nType ps2config-cmd.exe -h or --help for help\n");
 		return 1;
 	}
 
@@ -567,11 +595,13 @@ int main(int argc, char *argv[]) {
 		fprintf(stderr, "Input directory not found: %s\n", input);
 		return 1;
 	}
-	if( isDirExist(output) != 0 ) {
-		printf("Output directory not found...\nCreating output directory: %s\n", output);
-		if (mkdir(output, 0777) != 0) {
-			perror("mkdir");
-			return 1;
+	if( mode != NET_TXT && mode != GX_TXT && mode != SOFT_TXT) {
+		if( isDirExist(output) != 0 ) {
+			printf("Output directory not found...\nCreating output directory: %s\n", output);
+			if (mkdir(output, 0777) != 0) {
+				perror("mkdir");
+				return 1;
+			}
 		}
 	}
 
@@ -615,12 +645,12 @@ int main(int argc, char *argv[]) {
 			scan_task(input, (void (*)())netcfg_log, output, 0); 
 			break;
 		}
-		case SOFT_TXT:
+		case GX_TXT:
 		{
 			scan_task(input, (void (*)())gxcfg_log, output, 0); 
 			break;
 		}
-		case GX_TXT:
+		case SOFT_TXT:
 		{
 			fprintf(stderr, "SOFT_TXT not implemented.\n");
 			break;

@@ -14,13 +14,13 @@ extern FILE *netLog;
 extern FILE *gxLog;
 
 void es_NetCommand(NetCommand* command) {
-    command->cmdid = SWAP_LE(command->cmdid);
+    ES_LE(command->cmdid);
 	
 	//allow swap and reswap
 	uint32_t cmdid = command->cmdid;
 	if(cmdid > 0x1000) {
 		printf("RESWAP");
-		cmdid = SWAP_LE(cmdid);
+		ES_LE(cmdid);
 		if(cmdid > 0x1000) {	
 			fprintf(stderr, "cmdid too big\n");
 			return;
@@ -33,128 +33,120 @@ void es_NetCommand(NetCommand* command) {
         case 0x43: case 0x4D:
         case 0x17: case 0x1C: case 0x1D: case 0x1E:
 		{
-            command->oneU32.param = SWAP_LE(command->oneU32.param);
+            ES_LE(command->oneU32.param);
             break;
 		}
         case 0x01:
 		{
-            command->cmd_01.offset = SWAP_LE(command->cmd_01.offset);
-            command->cmd_01.hackid = SWAP_LE(command->cmd_01.hackid);
+            ES_LE(command->cmd_01.offset);
+            ES_LE(command->cmd_01.FuncId);
             break;
 		}
         case 0x0F: case 0x10: case 0x26: case 0x27:
         case 0x29: case 0x48: case 0x4C:
 		{
-            command->twoU32.param1 = SWAP_LE(command->twoU32.param1);
-            command->twoU32.param2 = SWAP_LE(command->twoU32.param2);
+            ES_LE_ARRAY(command->twoU32.param);
             break;
 		}
         case 0x08:
 		{
-            command->cmd_08.ReplaceDataMask = SWAP_LE(command->cmd_08.ReplaceDataMask);
-            command->cmd_08.ReplaceData = SWAP_LE(command->cmd_08.ReplaceData);
-            command->cmd_08.OriginalDataMask = SWAP_LE(command->cmd_08.OriginalDataMask);
-            command->cmd_08.OriginalData = SWAP_LE(command->cmd_08.OriginalData);
+            ES_LE_ARRAY(command->cmd_08.ReplaceDataMask);
+            ES_LE_ARRAY(command->cmd_08.ReplaceData);
+            ES_LE_ARRAY(command->cmd_08.OriginalDataMask);
+            ES_LE_ARRAY(command->cmd_08.OriginalData);
             break;
 		}
         case 0x09:
 		{
-            command->cmd_09.count = SWAP_LE(command->cmd_09.count);
+            ES_LE(command->cmd_09.count);
 			uint32_t count = command->cmd_09.count;
 			if( count > 0x1000 ) {
-				count = SWAP_LE(count);
+				ES_LE(count);
 				if(count > 0x1000) {
 					fprintf(stderr, "cmd_09 count too big\n");
 					return;
 				}
 			}
             for (uint32_t i = 0; i < count; i++) {
-                command->cmd_09.data[i].offset = SWAP_LE(command->cmd_09.data[i].offset);
+               ES_LE(command->cmd_09.data[i].offset);
+			   ES_LE_ARRAY(command->cmd_09.data[i].OriginalData);
+			   ES_LE_ARRAY(command->cmd_09.data[i].ReplaceData);
             }
             break;
 		}
         case 0x0A:
 		{
-            command->cmd_0A.count = SWAP_LE(command->cmd_0A.count);
+            ES_LE(command->cmd_0A.count);
 			uint32_t count = command->cmd_0A.count;
 			if( count > 0x1000 ) {
-				count = SWAP_LE(count);
+				ES_LE(count);
 				if(count > 0x1000) {
 					fprintf(stderr, "cmd_0A count too big\n");
 					return;
 				}
 			}
             for (uint32_t i = 0; i < count; i++) {
-                command->cmd_0A.data[i].offset = SWAP_LE(command->cmd_0A.data[i].offset);
+                ES_LE(command->cmd_0A.data[i].offset);
+				ES_LE(command->cmd_0A.data[i].OriginalData);
+				ES_LE(command->cmd_0A.data[i].ReplaceData);
             }
             break;
 		}
         case 0x0B:
 		{
-            command->cmd_0B.count = SWAP_LE(command->cmd_0B.count);
+            ES_LE(command->cmd_0B.count);
 			uint32_t count = command->cmd_0B.count;
 			if( count > 0x1000 ) {
-				count = SWAP_LE(count);
+				ES_LE(count);
 				if(count > 0x1000) {
 					fprintf(stderr, "cmd_0B count too big\n");
 					return;
 				}
 			}
             for (uint32_t i = 0; i < count; i++) {
-                command->cmd_0B.data[i].sector = SWAP_LE(command->cmd_0B.data[i].sector);
-                command->cmd_0B.data[i].offset = SWAP_LE(command->cmd_0B.data[i].offset);
-                command->cmd_0B.data[i].size = SWAP_LE(command->cmd_0B.data[i].size);
+                ES_LE(command->cmd_0B.data[i].sector);
+                ES_LE(command->cmd_0B.data[i].offset);
+                ES_LE(command->cmd_0B.data[i].size);
             }
             break;
 		}
         case 0x0C:
 		{
-            command->twoU16.param1 = SWAP_LE(command->twoU16.param1);
-            command->twoU16.param2 = SWAP_LE(command->twoU16.param2);
+            ES_LE_ARRAY(command->twoU16.param);
             break;
 		}
         case 0x12:
 		{
-            command->oneArrayU32.count = SWAP_LE(command->oneArrayU32.count);
-			uint32_t count = command->oneArrayU32.count;
+            ES_LE(command->oneArrayU32.count);
+			uint32_t count = command->cmd_0B.count;
 			if( count > 0x1000 ) {
-				count = SWAP_LE(count);
+				ES_LE(count);
 				if(count > 0x1000) {
-					fprintf(stderr, "oneArrayU32 count too big\n");
+					fprintf(stderr, "cmd_0B count too big\n");
 					return;
 				}
 			}
             for (uint32_t i = 0; i < count; i++) {
-                command->oneArrayU32.paramArray[i] = SWAP_LE(command->oneArrayU32.paramArray[i]);
-            }
-            break;
+				ES_LE(command->oneArrayU32.paramArray[i]);
+			}
+			break;
 		}
         case 0x13: case 0x20: case 0x24:
 		{
-            command->oneU64.param = SWAP_LE(command->oneU64.param);
+            ES_LE(command->oneU64.param);
             break;
 		}
         case 0x42:
 		{
-            command->cmd_42.offset = SWAP_LE(command->cmd_42.offset);
-            command->cmd_42.count = SWAP_LE(command->cmd_42.count);
-			uint32_t count = command->cmd_42.count;
-			if( count > 0x1000 ) {
-				count = SWAP_LE(count);
-				if(count > 0x1000) {
-					fprintf(stderr, "cmd_42 count too big\n");
-					return;
-				}
-			}
-            for (uint32_t i = 0; i < count; i++) {
-                command->cmd_42.param[i] = SWAP_LE(command->cmd_42.param[i]);
-            }
+            ES_LE(command->cmd_42.offset);
+            ES_LE(command->cmd_42.count);
+			ES_LE_ARRAY(command->cmd_42.param);
             break;
 		}
         case 0x4B:
 		{
-            command->cmd_4B.offset = SWAP_LE(command->cmd_4B.offset);
-            command->cmd_4B.Redirect = SWAP_LE(command->cmd_4B.Redirect);
+            ES_LE(command->cmd_4B.offset);
+            ES_LE(command->cmd_4B.Redirect);
             break;
 		}
         default:
@@ -220,7 +212,7 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
             case 0x01:
 			{
                 if (fread(&cfg->commands[cfg->cmdCount].cmd_01.offset, sizeof(uint32_t), 1, file) != 1 ||
-                    fread(&cfg->commands[cfg->cmdCount].cmd_01.hackid, sizeof(uint32_t), 1, file) != 1) {
+                    fread(&cfg->commands[cfg->cmdCount].cmd_01.FuncId, sizeof(uint32_t), 1, file) != 1) {
                     perror("Error reading cmd_01 data");
                     goto end;
                 }
@@ -229,8 +221,7 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
             case 0x0F: case 0x10: case 0x26: case 0x27:
 			case 0x29: case 0x48: case 0x4C:
 			{
-                if (fread(&cfg->commands[cfg->cmdCount].twoU32.param1, sizeof(uint32_t), 1, file) != 1 ||
-                    fread(&cfg->commands[cfg->cmdCount].twoU32.param2, sizeof(uint32_t), 1, file) != 1) {
+                if (fread(&cfg->commands[cfg->cmdCount].twoU32.param, sizeof(uint32_t), 2, file) != 2) {
                     perror("Error reading twoU32 parameters");
                     goto end;
                 }
@@ -249,10 +240,10 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
 			}
             case 0x08:
 			{
-                if (fread(&cfg->commands[cfg->cmdCount].cmd_08.ReplaceDataMask, sizeof(uint64_t), 1, file) != 1 ||
-                    fread(&cfg->commands[cfg->cmdCount].cmd_08.ReplaceData, sizeof(uint64_t), 1, file) != 1 ||
-                    fread(&cfg->commands[cfg->cmdCount].cmd_08.OriginalDataMask, sizeof(uint64_t), 1, file) != 1 ||
-                    fread(&cfg->commands[cfg->cmdCount].cmd_08.OriginalData, sizeof(uint64_t), 1, file) != 1) {
+                if (fread(&cfg->commands[cfg->cmdCount].cmd_08.ReplaceDataMask, sizeof(uint32_t), 2, file) != 2 ||
+                    fread(&cfg->commands[cfg->cmdCount].cmd_08.ReplaceData, sizeof(uint32_t), 2, file) != 2 ||
+                    fread(&cfg->commands[cfg->cmdCount].cmd_08.OriginalDataMask, sizeof(uint32_t), 2, file) != 2 ||
+                    fread(&cfg->commands[cfg->cmdCount].cmd_08.OriginalData, sizeof(uint32_t), 2, file) != 2) {
                     perror("Error reading cmd_08 data");
                     goto end;
                 }
@@ -260,33 +251,32 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
 			}
             case 0x09:
 			{
-                uint32_t count;
-                if (fread(&count, sizeof(uint32_t), 1, file) != 1) {
+                if (fread(&cfg->commands[cfg->cmdCount].cmd_09.count, sizeof(uint32_t), 1, file) != 1) {
 					perror("Error reading cmd_09 count");
                     goto end;
 				}
-				cfg->commands[cfg->cmdCount].cmd_09.count = count;
-				count = SWAP_LE(count);
+				uint32_t count = SWAP_LE(cfg->commands[cfg->cmdCount].cmd_09.count);
                 for (uint32_t i = 0; i < count; i++) {
-                    fread(&cfg->commands[cfg->cmdCount].cmd_09.data[i].offset, sizeof(uint32_t), 1, file);
-                    fread(&cfg->commands[cfg->cmdCount].cmd_09.data[i].OriginalData, sizeof(uint8_t), 8, file);
-                    fread(&cfg->commands[cfg->cmdCount].cmd_09.data[i].ReplaceData, sizeof(uint8_t), 8, file);
+                    if (fread(&cfg->commands[cfg->cmdCount].cmd_09.data[i].offset, sizeof(uint32_t), 1, file) != 1 ||
+						fread(&cfg->commands[cfg->cmdCount].cmd_09.data[i].OriginalData, sizeof(uint32_t), 2, file) != 2 ||
+						fread(&cfg->commands[cfg->cmdCount].cmd_09.data[i].ReplaceData, sizeof(uint32_t), 2, file) != 2) {
+						perror("Error reading cmd_09 data");
+						goto end;
+					}
                 }
                 break;
 			}
             case 0x0A:
 			{
-                uint32_t count;
-                if(fread(&count, sizeof(uint32_t), 1, file) != 1) {
+                if(fread(&cfg->commands[cfg->cmdCount].cmd_0A.count, sizeof(uint32_t), 1, file) != 1) {
 					perror("Error reading cmd_0A count");
                     goto end;
 				}
-				cfg->commands[cfg->cmdCount].cmd_0A.count = count;
-				count = SWAP_LE(count);
+				uint32_t count =  SWAP_LE(cfg->commands[cfg->cmdCount].cmd_0A.count);
                 for (uint32_t i = 0; i < count; i++) {
                     if( fread(&cfg->commands[cfg->cmdCount].cmd_0A.data[i].offset, sizeof(uint32_t), 1, file) != 1 ||
-						fread(cfg->commands[cfg->cmdCount].cmd_0A.data[i].OriginalData, sizeof(uint8_t), 4, file) != 4 ||
-						fread(cfg->commands[cfg->cmdCount].cmd_0A.data[i].ReplaceData, sizeof(uint8_t), 4, file) != 4 ) {
+						fread(&cfg->commands[cfg->cmdCount].cmd_0A.data[i].OriginalData, sizeof(uint32_t), 1, file) != 1 ||
+						fread(&cfg->commands[cfg->cmdCount].cmd_0A.data[i].ReplaceData, sizeof(uint32_t), 1, file) != 1 ) {
 						fprintf(stderr, "Error reading cmd_0A data %X\n", i);
 						goto end;
 					}
@@ -296,13 +286,12 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
             case 0x0B:
 			{
 				
-                uint32_t count;
-                if(fread(&count, sizeof(uint32_t), 1, file) != 1) {
+                if(fread(&cfg->commands[cfg->cmdCount].cmd_0B.count, sizeof(uint32_t), 1, file) != 1) {
 					perror("Error reading cmd_0B count");
                     goto end;
 				}
-				cfg->commands[cfg->cmdCount].cmd_0B.count = count;
-				count = SWAP_LE(count);
+
+			 	uint32_t count = SWAP_LE(count);
 				for (uint32_t i = 0; i < count; i++) {
                     
                     if( fread(&cfg->commands[cfg->cmdCount].cmd_0B.data[i].sector, sizeof(uint32_t), 1, file) != 1 ||
@@ -310,13 +299,11 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
 						perror("Error reading cmd_0A offset/sector");
 						goto end;
 					}
-					uint32_t size;
-                    if( fread(&size, sizeof(uint32_t), 1, file) != 1) {
+                    if( fread(&cfg->commands[cfg->cmdCount].cmd_0B.data[i].size, sizeof(uint32_t), 1, file) != 1) {
 						perror("Error reading cmd_0A size");
 						goto end;
 					}
-                    cfg->commands[cfg->cmdCount].cmd_0B.data[i].size = size;
-					size = SWAP_LE(size);
+					uint32_t size = SWAP_LE(cfg->commands[cfg->cmdCount].cmd_0B.data[i].size);
 
 					/* too much issue with it
 					cfg->commands[cfg->cmdCount].cmd_0B.data[i].ReplaceData = malloc(size);
@@ -342,7 +329,7 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
 			}
             case 0x0C:
 			{
-                if( fread(&cfg->commands[cfg->cmdCount].twoU16, sizeof(uint16_t), 2, file) != 2) {
+                if( fread(&cfg->commands[cfg->cmdCount].twoU16.param, sizeof(uint16_t), 2, file) != 2) {
 					perror("Error reading twoU16");
                     goto end;
 				}
@@ -350,13 +337,11 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
 			}
             case 0x12:
 			{
-                uint32_t count;
-                if( fread(&count, sizeof(uint32_t), 1, file) != 1) {
+                if( fread(&cfg->commands[cfg->cmdCount].oneArrayU32.count, sizeof(uint32_t), 1, file) != 1) {
 					perror("Error reading oneArrayU32 count");
                     goto end;
 				}
-				cfg->commands[cfg->cmdCount].oneArrayU32.count = count;
-				count = SWAP_LE(count);
+				uint32_t count = SWAP_LE(cfg->commands[cfg->cmdCount].oneArrayU32.count);
                 if( fread(cfg->commands[cfg->cmdCount].oneArrayU32.paramArray, sizeof(uint32_t), count, file) != count) {
 					perror("Error reading oneArrayU32 data");
                     goto end;
@@ -365,8 +350,11 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
 			}
             case 0x13: case 0x20: case 0x24:
 			{
-                fread(&cfg->commands[cfg->cmdCount].oneU64.param, sizeof(uint64_t), 1, file);
-                break;
+               	if( fread(&cfg->commands[cfg->cmdCount].oneU64.param, sizeof(uint64_t), 1, file) != 1) {
+					perror("Error reading oneU64");
+					goto end;
+				}
+				break;
 			}
 			case 0x42:
 			{
@@ -374,19 +362,15 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
 					perror("Error reading cmd_42 offset");
                     goto end;
 				}
-
-				uint32_t count;
-                if( fread(&count, sizeof(uint32_t), 1, file) != 1) {
+                if( fread(&cfg->commands[cfg->cmdCount].cmd_42.count, sizeof(uint32_t), 1, file) != 1) {
 					perror("Error reading cmd_42 count");
                     goto end;
 				}
-				cfg->commands[cfg->cmdCount].cmd_42.count = count;
-				count = SWAP_LE(count);
+				uint32_t count = SWAP_LE(cfg->commands[cfg->cmdCount].cmd_42.count);
 				if( fread(cfg->commands[cfg->cmdCount].cmd_42.param, sizeof(uint32_t), count, file) != count) {
 					perror("Error reading cmd_42 param");
 					goto end;
 				}
-				
 				break;
 			}
 			case 0x4B:
@@ -487,7 +471,7 @@ int save_NetCfg(const char* filename, NetCfg_t* cfg) {
             case 0x01:
 			{
                 if (fwrite(&cfg->commands[i].cmd_01.offset, sizeof(uint32_t), 1, file) != 1 ||
-                    fwrite(&cfg->commands[i].cmd_01.hackid, sizeof(uint32_t), 1, file) != 1) {
+                    fwrite(&cfg->commands[i].cmd_01.FuncId, sizeof(uint32_t), 1, file) != 1) {
                     perror("Error writing cmd_01 data");
                     fclose(file);
                     return -1;
@@ -497,8 +481,7 @@ int save_NetCfg(const char* filename, NetCfg_t* cfg) {
 			case 0x0F: case 0x10: case 0x26: case 0x27:
 			case 0x29: case 0x48: case 0x4C:
 			{
-                if (fwrite(&cfg->commands[i].twoU32.param1, sizeof(uint32_t), 1, file) != 1 ||
-                    fwrite(&cfg->commands[i].twoU32.param2, sizeof(uint32_t), 1, file) != 1) {
+                if (fwrite(&cfg->commands[i].twoU32.param, sizeof(uint32_t), 2, file) != 2) {
                     perror("Error writing twoU32 parameters");
                     fclose(file);
                     return -1;
@@ -519,10 +502,10 @@ int save_NetCfg(const char* filename, NetCfg_t* cfg) {
 			}
             case 0x08:
 			{
-				if (fwrite(&cfg->commands[i].cmd_08.ReplaceDataMask, sizeof(uint64_t), 1, file) != 1 ||
-                    fwrite(&cfg->commands[i].cmd_08.ReplaceData, sizeof(uint64_t), 1, file) != 1 ||
-                    fwrite(&cfg->commands[i].cmd_08.OriginalDataMask, sizeof(uint64_t), 1, file) != 1 ||
-                    fwrite(&cfg->commands[i].cmd_08.OriginalData, sizeof(uint64_t), 1, file) != 1) {
+				if (fwrite(&cfg->commands[i].cmd_08.ReplaceDataMask, sizeof(uint32_t), 2, file) != 2 ||
+                    fwrite(&cfg->commands[i].cmd_08.ReplaceData, sizeof(uint32_t), 2, file) != 2 ||
+                    fwrite(&cfg->commands[i].cmd_08.OriginalDataMask, sizeof(uint32_t), 2, file) != 2 ||
+                    fwrite(&cfg->commands[i].cmd_08.OriginalData, sizeof(uint32_t), 2, file) != 2) {
                     perror("Error writing cmd_08 data");
                     fclose(file);
                     return -1;
@@ -539,8 +522,8 @@ int save_NetCfg(const char* filename, NetCfg_t* cfg) {
                 uint32_t count = SWAP_LE(cfg->commands[i].cmd_09.count);
                 for (uint32_t j = 0; j < count; j++) {
                     if (fwrite(&cfg->commands[i].cmd_09.data[j].offset, sizeof(uint32_t), 1, file) != 1 ||
-                        fwrite(cfg->commands[i].cmd_09.data[j].OriginalData, sizeof(uint8_t), 8, file) != 8 ||
-                        fwrite(cfg->commands[i].cmd_09.data[j].ReplaceData, sizeof(uint8_t), 8, file) != 8) {
+                        fwrite(cfg->commands[i].cmd_09.data[j].OriginalData, sizeof(uint32_t), 2, file) != 2 ||
+                        fwrite(cfg->commands[i].cmd_09.data[j].ReplaceData, sizeof(uint32_t), 2, file) != 2) {
                         perror("Error writing cmd_09 data");
                         fclose(file);
                         return -1;
@@ -558,8 +541,8 @@ int save_NetCfg(const char* filename, NetCfg_t* cfg) {
                 uint32_t count = SWAP_LE(cfg->commands[i].cmd_0A.count);
                 for (uint32_t j = 0; j < count; j++) {
                     if (fwrite(&cfg->commands[i].cmd_0A.data[j].offset, sizeof(uint32_t), 1, file) != 1 ||
-                        fwrite(cfg->commands[i].cmd_0A.data[j].OriginalData, sizeof(uint8_t), 4, file) != 4 ||
-                        fwrite(cfg->commands[i].cmd_0A.data[j].ReplaceData, sizeof(uint8_t), 4, file) != 4) {
+                        fwrite(&cfg->commands[i].cmd_0A.data[j].OriginalData, sizeof(uint32_t), 1, file) != 1 ||
+                        fwrite(&cfg->commands[i].cmd_0A.data[j].ReplaceData, sizeof(uint32_t), 1, file) != 1) {
                         perror("Error writing cmd_0A data");
                         fclose(file);
                         return -1;
@@ -595,8 +578,7 @@ int save_NetCfg(const char* filename, NetCfg_t* cfg) {
 			}
             case 0x0C:
 			{
-                if (fwrite(&cfg->commands[i].twoU16.param1, sizeof(uint16_t), 1, file) != 1 ||
-                    fwrite(&cfg->commands[i].twoU16.param2, sizeof(uint16_t), 1, file) != 1) {
+                if (fwrite(&cfg->commands[i].twoU16.param, sizeof(uint16_t), 2, file) != 2) {
                     perror("Error writing twoU16 parameters");
                     fclose(file);
                     return -1;
@@ -705,14 +687,14 @@ int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg) {
 			case 0x0F: case 0x10: case 0x26: case 0x27:
 			case 0x29: case 0x48: case 0x4C:
 			{
-				fprintf(file, "\t\tparam1: 0x%08X\n", cfg->commands[i].twoU32.param1);
-				fprintf(file, "\t\tparam2: 0x%08X\n", cfg->commands[i].twoU32.param2);
+				fprintf(file, "\t\tparam1: 0x%08X\n", cfg->commands[i].twoU32.param[0]);
+				fprintf(file, "\t\tparam2: 0x%08X\n", cfg->commands[i].twoU32.param[1]);
 				break;
 			}
 			case 0x01:
 			{
 				fprintf(file, "\t\toffset: 0x%08X\n", cfg->commands[i].cmd_01.offset);
-				fprintf(file, "\t\thackid: 0x%08X\n", cfg->commands[i].cmd_01.hackid);
+				fprintf(file, "\t\tFuncId: 0x%08X\n", cfg->commands[i].cmd_01.FuncId);
 				break;
 			}
 			case 0x00:
@@ -722,10 +704,10 @@ int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg) {
 			}
 			case 0x08:
 			{
-				fprintf(file, "\t\tReplaceDataMask: 0x%016llX\n", cfg->commands[i].cmd_08.ReplaceDataMask);
-				fprintf(file, "\t\tReplaceData: 0x%016llX\n", cfg->commands[i].cmd_08.ReplaceData);
-				fprintf(file, "\t\tOriginalDataMask: 0x%016llX\n", cfg->commands[i].cmd_08.OriginalDataMask);
-				fprintf(file, "\t\tOriginalData: 0x%016llX\n", cfg->commands[i].cmd_08.OriginalData);
+				fprintf(file, "\t\tReplaceDataMask: %08X %08X\n", cfg->commands[i].cmd_08.ReplaceDataMask[0], cfg->commands[i].cmd_08.ReplaceDataMask[1]);
+				fprintf(file, "\t\tReplaceData: %08X %08X\n", cfg->commands[i].cmd_08.ReplaceData[0], cfg->commands[i].cmd_08.ReplaceData[1]);
+				fprintf(file, "\t\tOriginalDataMask: %08X %08X\n", cfg->commands[i].cmd_08.OriginalDataMask[0], cfg->commands[i].cmd_08.OriginalDataMask[1]);
+				fprintf(file, "\t\tOriginalData: %08X %08X\n", cfg->commands[i].cmd_08.OriginalData[0], cfg->commands[i].cmd_08.OriginalData[1]);
 				break;
 			}
 			case 0x09:
@@ -735,10 +717,10 @@ int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg) {
 					fprintf(file, "\t\t\toffset: 0x%08X\n", cfg->commands[i].cmd_09.data[j].offset);
 					
 					fprintf(file, "\t\t\tOriginalData:\n");
-					write_data(file, cfg->commands[i].cmd_09.data[j].OriginalData, 8, 0, 5);
+					write_data(file, (uint8_t *) &cfg->commands[i].cmd_09.data[j].OriginalData, 8, 0, 5);
 				
 					fprintf(file, "\t\t\tReplaceData:\n");
-					write_data(file, cfg->commands[i].cmd_09.data[j].ReplaceData, 8, 0, 5);
+					write_data(file, (uint8_t *) &cfg->commands[i].cmd_09.data[j].ReplaceData, 8, 0, 5);
 				}
 				break;
 			}
@@ -749,10 +731,10 @@ int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg) {
 					fprintf(file, "\t\t\toffset: 0x%08X\n", cfg->commands[i].cmd_0A.data[j].offset);
 					
 					fprintf(file, "\t\t\tOriginalData:\n");
-					write_data(file, cfg->commands[i].cmd_0A.data[j].OriginalData, 4, 0, 5);
+					write_data(file, (uint8_t *) &cfg->commands[i].cmd_0A.data[j].OriginalData, 4, 0, 5);
 					
 					fprintf(file, "\t\t\tReplaceData:\n");
-					write_data(file, cfg->commands[i].cmd_0A.data[j].ReplaceData, 4, 0, 5);
+					write_data(file, (uint8_t *) &cfg->commands[i].cmd_0A.data[j].ReplaceData, 4, 0, 5);
 				}
 				break;
 			}
@@ -765,17 +747,17 @@ int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg) {
 					fprintf(file, "\t\t\tsize: 0x%08X\n", cfg->commands[i].cmd_0B.data[j].size);
 					
 					fprintf(file, "\t\t\tReplaceData:\n");
-					write_data(file, cfg->commands[i].cmd_0B.data[j].ReplaceData, cfg->commands[i].cmd_0B.data[j].size, 0, 5);
+					write_data(file, (uint8_t *) cfg->commands[i].cmd_0B.data[j].ReplaceData, cfg->commands[i].cmd_0B.data[j].size, 0, 5);
 
 					fprintf(file, "\t\t\tOriginalData:\n");
-					write_data(file, cfg->commands[i].cmd_0B.data[j].OriginalData, cfg->commands[i].cmd_0B.data[j].size, 0, 5);
+					write_data(file, (uint8_t *) cfg->commands[i].cmd_0B.data[j].OriginalData, cfg->commands[i].cmd_0B.data[j].size, 0, 5);
 				}
 				break;
 			}
 			case 0x0C:
 			{
-				fprintf(file, "\t\tparam1: 0x%04X\n", cfg->commands[i].twoU16.param1);
-				fprintf(file, "\t\tparam2: 0x%04X\n", cfg->commands[i].twoU16.param2);
+				fprintf(file, "\t\tparam1: 0x%04X\n", cfg->commands[i].twoU16.param[0]);
+				fprintf(file, "\t\tparam2: 0x%04X\n", cfg->commands[i].twoU16.param[1]);
 				break;
 			}
 			case 0x12:
