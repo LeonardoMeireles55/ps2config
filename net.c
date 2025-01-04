@@ -117,18 +117,8 @@ void es_NetCommand(NetCommand* command) {
 		}
         case 0x12:
 		{
-            ES_LE(command->oneArrayU32.count);
-			uint32_t count = command->cmd_0B.count;
-			if( count > 0x1000 ) {
-				ES_LE(count);
-				if(count > 0x1000) {
-					fprintf(stderr, "cmd_0B count too big\n");
-					return;
-				}
-			}
-            for (uint32_t i = 0; i < count; i++) {
-				ES_LE(command->oneArrayU32.paramArray[i]);
-			}
+            ES_LE(command->cmd_12.count);
+			ES_LE_ARRAY(command->cmd_12.param);
 			break;
 		}
         case 0x13: case 0x20: case 0x24:
@@ -169,7 +159,7 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
 
     uint32_t cmdid;
 
-	cfg->commands = calloc(0x400000, 1);
+	cfg->commands = calloc(0x100, sizeof(NetCommand));
 	if (!cfg->commands) {
 		perror("malloc allocation failed");
 		goto end;
@@ -337,12 +327,12 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
 			}
             case 0x12:
 			{
-                if( fread(&cfg->commands[cfg->cmdCount].oneArrayU32.count, sizeof(uint32_t), 1, file) != 1) {
+                if( fread(&cfg->commands[cfg->cmdCount].cmd_12.count, sizeof(uint32_t), 1, file) != 1) {
 					perror("Error reading oneArrayU32 count");
                     goto end;
 				}
-				uint32_t count = SWAP_LE(cfg->commands[cfg->cmdCount].oneArrayU32.count);
-                if( fread(cfg->commands[cfg->cmdCount].oneArrayU32.paramArray, sizeof(uint32_t), count, file) != count) {
+				uint32_t count = SWAP_LE(cfg->commands[cfg->cmdCount].cmd_12.count);
+                if( fread(cfg->commands[cfg->cmdCount].cmd_12.param, sizeof(uint32_t), count, file) != count) {
 					perror("Error reading oneArrayU32 data");
                     goto end;
 				}
@@ -587,13 +577,13 @@ int save_NetCfg(const char* filename, NetCfg_t* cfg) {
 			}
             case 0x12:
 			{
-				if (fwrite(&cfg->commands[i].oneArrayU32.count, sizeof(uint32_t), 1, file) != 1) {
-                    perror("Error writing oneArrayU32.count");
+				if (fwrite(&cfg->commands[i].cmd_12.count, sizeof(uint32_t), 1, file) != 1) {
+                    perror("Error writing cmd_12.count");
                     fclose(file);
                     return -1;
                 }
-                uint32_t count = SWAP_LE(cfg->commands[i].oneArrayU32.count);
-                if (fwrite(cfg->commands[i].oneArrayU32.paramArray, sizeof(uint32_t), count, file) != count) {
+                uint32_t count = SWAP_LE(cfg->commands[i].cmd_12.count);
+                if (fwrite(cfg->commands[i].cmd_12.param, sizeof(uint32_t), count, file) != count) {
                     perror("Error writing oneArrayU32 data");
                     fclose(file);
                     return -1;
@@ -762,9 +752,9 @@ int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg) {
 			}
 			case 0x12:
 			{
-				fprintf(file, "\t\tcount: 0x%08X\n", cfg->commands[i].oneArrayU32.count);
-				for (uint32_t j = 0; j < cfg->commands[i].oneArrayU32.count; j++) {
-					fprintf(file, "\t\t\tparam[%u]: 0x%08X\n", j, cfg->commands[i].oneArrayU32.paramArray[j]);
+				fprintf(file, "\t\tcount: 0x%08X\n", cfg->commands[i].cmd_12.count);
+				for (uint32_t j = 0; j < cfg->commands[i].cmd_12.count; j++) {
+					fprintf(file, "\t\t\tparam[%u]: 0x%08X\n", j, cfg->commands[i].cmd_12.param[j]);
 				}
 				break;
 			}

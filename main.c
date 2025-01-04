@@ -60,6 +60,7 @@ s64 GxFuncFuncIdOffset[] = {0x36B40,
 							0x34994,
 							0x36FC8,
 							0x3607C,
+						 0xFFFFFFFF,
 							0x34A70,
 							0x34B48,
 							0x34C20,
@@ -138,7 +139,7 @@ s32 emuID[0x51][3] = {
 	{    -1,    -1, 0x3F},
 	{    -1,    -1, 0x40},
 	{    -1,    -1, 0x41},
-	{    -1,  0x2C, 0x42},
+	{    -1,    -1, 0x42},
 	{    -1,    -1, 0x43},
 	{    -1,    -1, 0x44},
 	{    -1,    -1, 0x45},
@@ -340,7 +341,7 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
             case 0x13: case 0x1C: case 0x1E: case 0x21: case 0x24: case 0x28: case 0x2A: case 0x2B:
 				gxCmd->oneU32.param = netCmd->oneU32.param;
 				break;
-			
+			/*
 			//u64 data //u32 count
 			case 0x08: case 0x09: case 0x10:
 				gxCmd->cmd_type1.DataOffset = GX_DATA_OFFSET + 0x18*(gxCfg->header.cmdCount+1);
@@ -359,9 +360,9 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
                 break;
 
 			 case 0x07:
-				gxCmd->cmd_type4.DataOffset = GX_DATA_OFFSET + 0x18*(gxCfg->header.cmdCount+1);
+				gxCmd->oneU64.param = GX_DATA_OFFSET + 0x18*(gxCfg->header.cmdCount+1);
 				break;
-			
+			*/
 			// u8 net 16 17 1D 1E
             case 0x14: case 0x15: case 0x1A: case 0x1B:
                 gxCmd->oneU32.param = netCmd->oneU32.param;
@@ -370,7 +371,7 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
            
 			// u64 net 13 20 24
 			case 0x11: case 0x1D: case 0x20:
-				gxCmd->cmd_type4.DataOffset = netCmd->oneU64.param; // it's not dataoffset, tofix
+				gxCmd->oneU64.param = netCmd->oneU64.param;
                 break;
 			
 			// 2 u16 net 0C
@@ -392,37 +393,6 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 				break;
 		}
 		gxCfg->header.cmdCount++;
-	}
-
-	uint32_t DATA_OFFSET = GX_DATA_OFFSET + 0x18*gxCfg->header.cmdCount;
-	for( uint32_t i=0; i<gxCfg->header.cmdCount; i++) {
-		GxCommand* gxCmd = &gxCfg->commands[i];
-		switch(gxCmd->cmdId) {
-			case 0x08:
-				gxCmd->cmd_type1.DataOffset = DATA_OFFSET;
-				break;
-			case 0x09:
-				gxCmd->cmd_type1.DataOffset = DATA_OFFSET;
-				break;
-			case 0x10:
-				gxCmd->cmd_type1.DataOffset = DATA_OFFSET;
-				break;
-			case 0x07:
-				gxCmd->cmd_type4.DataOffset = DATA_OFFSET;
-				break;
-			case 0x11:
-				gxCmd->cmd_type4.DataOffset = DATA_OFFSET;
-				break;
-			case 0x1D:
-				gxCmd->cmd_type4.DataOffset = DATA_OFFSET;
-				break;
-			case 0x20:
-				gxCmd->cmd_type4.DataOffset = DATA_OFFSET;
-				break;
-			default:
-				fprintf(stderr, "Unhandled GX command ID: 0x%02X\n", gxCmd->cmdId);
-				break;
-		}
 	}
 	ret=0;
 end:

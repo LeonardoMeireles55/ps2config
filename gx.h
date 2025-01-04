@@ -19,7 +19,6 @@ typedef struct {
 			uint8_t align[4];
 			int64_t FuncIDOffset;
 		} cmd_00;
-		
         struct {
             uint64_t DataOffset;
             uint8_t align[8];
@@ -29,7 +28,6 @@ typedef struct {
             uint32_t OriginalDataMask[2];
             uint32_t OriginalData[2];
         } cmd_07;
-
         struct {
             uint64_t DataOffset;
             uint32_t DataCount;
@@ -39,52 +37,49 @@ typedef struct {
                 uint8_t align[4];
                 uint32_t OriginalData[2];
                 uint32_t ReplaceData[2];
-            } data[];
+            } data[0x20];
         } cmd_08;
-        
         struct {
             uint64_t DataOffset;
             uint32_t DataCount;
             uint8_t align[4];
+
             struct {
                 uint32_t sector;
                 uint32_t offset;
                 uint64_t ReplaceDataOffset;
                 uint64_t OriginalDataOffset;
-                uint8_t align[4];
-                
-                uint8_t ReplaceData[0x400];
-                uint8_t OriginalData[0x400];
                 uint32_t size;
-            } data[];
+                uint8_t align[4];
+
+                uint32_t ReplaceData[0x100];
+                uint32_t OriginalData[0x100];
+                
+            } data[0x30];
         } cmd_09;
-
         struct {
-            int64_t DataOffset;
-            int32_t DataCount;
+            uint64_t DataOffset;
+            uint32_t DataCount;
             uint8_t align[4];
-        } cmd_type1;
 
+            uint32_t param[0x40];
+        } cmd_10;
         struct {
-            int32_t param;
+            uint32_t param;
             uint8_t align[12];
         } oneU32;
-
         struct {
-            int8_t param;
+            uint8_t param;
             uint8_t align[15];
         } oneU8;
-
         struct {
-            int64_t DataOffset;
+            uint64_t param;
             uint8_t align[8];
-        } cmd_type4;
-
+        } oneU64;
         struct {
             int16_t param[2];
             uint8_t align[12];
         } twoU16;
-
         struct {
             int32_t param[2];
             uint8_t align[8];

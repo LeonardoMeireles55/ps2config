@@ -6,20 +6,13 @@
 typedef struct {
     uint32_t cmdid;
     union {
-        struct {} empty;
         struct {
-            uint32_t param;
-        } oneU32;
-        struct {
-            uint32_t param[2];
-        } twoU32;
+            char titleID[10];
+        } cmd_00;
         struct {
             uint32_t offset;
             uint32_t FuncId;
         } cmd_01;
-        struct {
-            char titleID[10];
-        } cmd_00;
         struct {
             uint32_t ReplaceDataMask[2];
             uint32_t ReplaceData[2];
@@ -32,7 +25,7 @@ typedef struct {
                 uint32_t offset;
                 uint32_t OriginalData[2];
                 uint32_t ReplaceData[2];
-            } data[];
+            } data[0x20];
         } cmd_09;
         struct {
             uint32_t count;
@@ -40,7 +33,7 @@ typedef struct {
                 uint32_t offset;
                 uint32_t OriginalData;
                 uint32_t ReplaceData;
-            } data[];
+            } data[0x20];
         } cmd_0A;
         struct {
             uint32_t count;
@@ -48,10 +41,14 @@ typedef struct {
                 uint32_t sector;
                 uint32_t offset;
                 uint32_t size;
-                uint8_t ReplaceData[0x400];
-                uint8_t OriginalData[0x400];
-            } data[];
+                uint32_t ReplaceData[0x100];
+                uint32_t OriginalData[0x100];
+            } data[0x30];
         } cmd_0B;
+        struct {
+            uint32_t count;
+            uint32_t param[0x40];
+        } cmd_12;
         struct {
             uint32_t count;
             uint32_t offset;
@@ -66,12 +63,14 @@ typedef struct {
             uint16_t param[2];
         } twoU16;
         struct {
-            uint32_t count;
-            uint32_t paramArray[];
-        } oneArrayU32;
-        struct {
             uint64_t param;
         } oneU64;
+        struct {
+            uint32_t param;
+        } oneU32;
+        struct {
+            uint32_t param[2];
+        } twoU32;
     };
 } NetCommand;
 
