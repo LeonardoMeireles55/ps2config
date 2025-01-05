@@ -68,7 +68,7 @@ typedef struct {
                 uint8_t align_ori[4];
                 uint32_t ReplaceData;
                 uint8_t align_rep[4];
-            } data[0x20];
+            } data[0x400];
         } cmd_2C;
         struct {
             uint64_t DataOffset;

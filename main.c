@@ -579,7 +579,7 @@ void scan_task(const char *in, void (*func)(), const char *arg1, uint8_t arg2) {
 }
 
 static void print_help() {
-	printf( "\nUsage of ps2config-cmd\n"
+	printf( "\nUsage of ps2config-cmd v0.1\n"
 			"    Format\n"
 			"        ps2config-cmd.exe [option] <mode> <input> <output>\n"
 			"    Description\n"
