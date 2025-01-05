@@ -686,10 +686,11 @@ int GxCfg_to_txt(FILE* file, const GxCfg_t* cfg) {
                 uint32_t count = cfg->commands[i].cmd_08.DataCount;
                 for (uint32_t j = 0; j < count; j++) {
                     fprintf(file, "\t\t#%d offset       : 0x%08X\n", j, cfg->commands[i].cmd_08.data[j].offset);
+                    print_align(file, cfg->commands[i].cmd_08.data[j].align, sizeof(cfg->commands[i].cmd_08.data[j].align));
                     fprintf(file, "\t\t#%d OriginalData : %08X %08X\n", j, cfg->commands[i].cmd_08.data[j].OriginalData[0], cfg->commands[i].cmd_08.data[j].OriginalData[1]);
                     fprintf(file, "\t\t#%d ReplaceData  : %08X %08X\n", j, cfg->commands[i].cmd_08.data[j].ReplaceData[0], cfg->commands[i].cmd_08.data[j].ReplaceData[1]);
-                    print_align(file, cfg->commands[i].cmd_08.data[j].align, sizeof(cfg->commands[i].cmd_08.data[j].align));
                 }
+                break;
             } 
             case 0x09:
             {
@@ -705,9 +706,9 @@ int GxCfg_to_txt(FILE* file, const GxCfg_t* cfg) {
                     fprintf(file, "\t\t#%d size               : 0x%08X\n", j, cfg->commands[i].cmd_09.data[j].size);
                     print_align(file, cfg->commands[i].cmd_09.data[j].align, sizeof(cfg->commands[i].cmd_09.data[j].align));
 
-                    fprintf(file, "\t\t#%d ReplaceData  : ", j);
+                    fprintf(file, "\t\t#%d ReplaceData  : \n", j);
                     write_data(file, (uint8_t *) &cfg->commands[i].cmd_09.data[j].ReplaceData, cfg->commands[i].cmd_09.data[j].size, 0, 4);
-                    fprintf(file, "\t\t#%d OriginalData : ", j);
+                    fprintf(file, "\t\t#%d OriginalData : \n", j);
                     write_data(file, (uint8_t *) &cfg->commands[i].cmd_09.data[j].OriginalData, cfg->commands[i].cmd_09.data[j].size, 0, 4);
                 }
                 break;
