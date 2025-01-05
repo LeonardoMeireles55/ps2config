@@ -211,7 +211,7 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
             case 0x0F: case 0x10: case 0x26: case 0x27:
 			case 0x29: case 0x48: case 0x4C:
 			{
-                if (fread(&cfg->commands[cfg->cmdCount].twoU32.param, sizeof(uint32_t), 2, file) != 2) {
+                if (fread(cfg->commands[cfg->cmdCount].twoU32.param, sizeof(uint32_t), 2, file) != 2) {
                     perror("Error reading twoU32 parameters");
                     goto end;
                 }
@@ -220,7 +220,7 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
             case 0x00:
 			{
 				// optional no need to check
-                fread(&cfg->commands[cfg->cmdCount].cmd_00.titleID, sizeof(char), 10, file);
+                fread(cfg->commands[cfg->cmdCount].cmd_00.titleID, sizeof(char), 10, file);
 				
 				// no need to swap
 				//es_NetCommand(&cfg->commands[cfg->cmdCount]);
@@ -230,10 +230,10 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
 			}
             case 0x08:
 			{
-                if (fread(&cfg->commands[cfg->cmdCount].cmd_08.ReplaceDataMask, sizeof(uint32_t), 2, file) != 2 ||
-                    fread(&cfg->commands[cfg->cmdCount].cmd_08.ReplaceData, sizeof(uint32_t), 2, file) != 2 ||
-                    fread(&cfg->commands[cfg->cmdCount].cmd_08.OriginalDataMask, sizeof(uint32_t), 2, file) != 2 ||
-                    fread(&cfg->commands[cfg->cmdCount].cmd_08.OriginalData, sizeof(uint32_t), 2, file) != 2) {
+                if (fread(cfg->commands[cfg->cmdCount].cmd_08.ReplaceDataMask, sizeof(uint32_t), 2, file) != 2 ||
+                    fread(cfg->commands[cfg->cmdCount].cmd_08.ReplaceData, sizeof(uint32_t), 2, file) != 2 ||
+                    fread(cfg->commands[cfg->cmdCount].cmd_08.OriginalDataMask, sizeof(uint32_t), 2, file) != 2 ||
+                    fread(cfg->commands[cfg->cmdCount].cmd_08.OriginalData, sizeof(uint32_t), 2, file) != 2) {
                     perror("Error reading cmd_08 data");
                     goto end;
                 }
@@ -248,8 +248,8 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
 				uint32_t count = SWAP_LE(cfg->commands[cfg->cmdCount].cmd_09.count);
                 for (uint32_t i = 0; i < count; i++) {
                     if (fread(&cfg->commands[cfg->cmdCount].cmd_09.data[i].offset, sizeof(uint32_t), 1, file) != 1 ||
-						fread(&cfg->commands[cfg->cmdCount].cmd_09.data[i].OriginalData, sizeof(uint32_t), 2, file) != 2 ||
-						fread(&cfg->commands[cfg->cmdCount].cmd_09.data[i].ReplaceData, sizeof(uint32_t), 2, file) != 2) {
+						fread(cfg->commands[cfg->cmdCount].cmd_09.data[i].OriginalData, sizeof(uint32_t), 2, file) != 2 ||
+						fread(cfg->commands[cfg->cmdCount].cmd_09.data[i].ReplaceData, sizeof(uint32_t), 2, file) != 2) {
 						perror("Error reading cmd_09 data");
 						goto end;
 					}
@@ -281,36 +281,23 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
                     goto end;
 				}
 
-			 	uint32_t count = SWAP_LE(count);
+			 	uint32_t count = SWAP_LE(cfg->commands[cfg->cmdCount].cmd_0B.count);
 				for (uint32_t i = 0; i < count; i++) {
-                    
                     if( fread(&cfg->commands[cfg->cmdCount].cmd_0B.data[i].sector, sizeof(uint32_t), 1, file) != 1 ||
 						fread(&cfg->commands[cfg->cmdCount].cmd_0B.data[i].offset, sizeof(uint32_t), 1, file) != 1) {
-						perror("Error reading cmd_0A offset/sector");
+						perror("Error reading cmd_0B offset/sector");
 						goto end;
 					}
-                    if( fread(&cfg->commands[cfg->cmdCount].cmd_0B.data[i].size, sizeof(uint32_t), 1, file) != 1) {
-						perror("Error reading cmd_0A size");
+					if( fread(&cfg->commands[cfg->cmdCount].cmd_0B.data[i].size, sizeof(uint32_t), 1, file) != 1) {
+						perror("Error reading cmd_0B size");
 						goto end;
 					}
 					uint32_t size = SWAP_LE(cfg->commands[cfg->cmdCount].cmd_0B.data[i].size);
-
-					/* too much issue with it
-					cfg->commands[cfg->cmdCount].cmd_0B.data[i].ReplaceData = malloc(size);
-					cfg->commands[cfg->cmdCount].cmd_0B.data[i].OriginalData = malloc(size);
-					if (!cfg->commands[cfg->cmdCount].cmd_0B.data[i].ReplaceData || !cfg->commands[cfg->cmdCount].cmd_0B.data[i].OriginalData) {
-						perror("Failed to allocate memory for ReplaceData or OriginalData");
-						goto end;
-					}
-					*/
-					
-					
-                    if( fread(cfg->commands[cfg->cmdCount].cmd_0B.data[i].ReplaceData, sizeof(uint8_t), size, file) != size) {
+					if( fread(cfg->commands[cfg->cmdCount].cmd_0B.data[i].ReplaceData, sizeof(uint32_t), size/4, file) != size/4) {
 						perror("Error reading cmd_0B ReplaceData or OriginalData");
 						goto end;
-					}	
-						
-					if( fread(cfg->commands[cfg->cmdCount].cmd_0B.data[i].OriginalData, sizeof(uint8_t), size, file) != size ) {
+					}
+					if( fread(cfg->commands[cfg->cmdCount].cmd_0B.data[i].OriginalData, sizeof(uint32_t), size/4, file) != size/4 ) {
 						perror("Error reading cmd_0B OriginalData");
 						goto end;
 					}
@@ -319,7 +306,7 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
 			}
             case 0x0C:
 			{
-                if( fread(&cfg->commands[cfg->cmdCount].twoU16.param, sizeof(uint16_t), 2, file) != 2) {
+                if( fread(cfg->commands[cfg->cmdCount].twoU16.param, sizeof(uint16_t), 2, file) != 2) {
 					perror("Error reading twoU16");
                     goto end;
 				}
@@ -373,7 +360,7 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
 					perror("Error reading cmd_42 Redirect");
                     goto end;
 				}
-				if( fread(&cfg->commands[cfg->cmdCount].cmd_4B.data, sizeof(char), 0x10, file) != 0x10) {
+				if( fread(cfg->commands[cfg->cmdCount].cmd_4B.data, sizeof(uint8_t), 0x10, file) != 0x10) {
 					perror("Error reading cmd_4B data");
 					goto end;
 				}
@@ -471,7 +458,7 @@ int save_NetCfg(const char* filename, NetCfg_t* cfg) {
 			case 0x0F: case 0x10: case 0x26: case 0x27:
 			case 0x29: case 0x48: case 0x4C:
 			{
-                if (fwrite(&cfg->commands[i].twoU32.param, sizeof(uint32_t), 2, file) != 2) {
+                if (fwrite(cfg->commands[i].twoU32.param, sizeof(uint32_t), 2, file) != 2) {
                     perror("Error writing twoU32 parameters");
                     fclose(file);
                     return -1;
@@ -492,10 +479,10 @@ int save_NetCfg(const char* filename, NetCfg_t* cfg) {
 			}
             case 0x08:
 			{
-				if (fwrite(&cfg->commands[i].cmd_08.ReplaceDataMask, sizeof(uint32_t), 2, file) != 2 ||
-                    fwrite(&cfg->commands[i].cmd_08.ReplaceData, sizeof(uint32_t), 2, file) != 2 ||
-                    fwrite(&cfg->commands[i].cmd_08.OriginalDataMask, sizeof(uint32_t), 2, file) != 2 ||
-                    fwrite(&cfg->commands[i].cmd_08.OriginalData, sizeof(uint32_t), 2, file) != 2) {
+				if (fwrite(cfg->commands[i].cmd_08.ReplaceDataMask, sizeof(uint32_t), 2, file) != 2 ||
+                    fwrite(cfg->commands[i].cmd_08.ReplaceData, sizeof(uint32_t), 2, file) != 2 ||
+                    fwrite(cfg->commands[i].cmd_08.OriginalDataMask, sizeof(uint32_t), 2, file) != 2 ||
+                    fwrite(cfg->commands[i].cmd_08.OriginalData, sizeof(uint32_t), 2, file) != 2) {
                     perror("Error writing cmd_08 data");
                     fclose(file);
                     return -1;
@@ -557,8 +544,8 @@ int save_NetCfg(const char* filename, NetCfg_t* cfg) {
                         return -1;
                     }
                     uint32_t size = SWAP_LE(cfg->commands[i].cmd_0B.data[j].size);
-                    if (fwrite(cfg->commands[i].cmd_0B.data[j].ReplaceData, sizeof(uint8_t), size, file) != size ||
-                        fwrite(cfg->commands[i].cmd_0B.data[j].OriginalData, sizeof(uint8_t), size, file) != size) {
+                    if (fwrite(cfg->commands[i].cmd_0B.data[j].ReplaceData, sizeof(uint32_t), size/4, file) != size/4 ||
+                        fwrite(cfg->commands[i].cmd_0B.data[j].OriginalData, sizeof(uint32_t), size/4, file) != size/4) {
                         perror("Error writing cmd_0B data arrays");
                         fclose(file);
                         return -1;
@@ -568,7 +555,7 @@ int save_NetCfg(const char* filename, NetCfg_t* cfg) {
 			}
             case 0x0C:
 			{
-                if (fwrite(&cfg->commands[i].twoU16.param, sizeof(uint16_t), 2, file) != 2) {
+                if (fwrite(cfg->commands[i].twoU16.param, sizeof(uint16_t), 2, file) != 2) {
                     perror("Error writing twoU16 parameters");
                     fclose(file);
                     return -1;
@@ -620,7 +607,7 @@ int save_NetCfg(const char* filename, NetCfg_t* cfg) {
 			{
                 if (fwrite(&cfg->commands[i].cmd_4B.offset, sizeof(uint32_t), 1, file) != 1 ||
                     fwrite(&cfg->commands[i].cmd_4B.Redirect, sizeof(uint32_t), 1, file) != 1 ||
-                    fwrite(&cfg->commands[i].cmd_4B.data, sizeof(char), 0x10, file) != 0x10) {
+                    fwrite(cfg->commands[i].cmd_4B.data, sizeof(uint8_t), 0x10, file) != 0x10) {
                     perror("Error writing cmd_4B data");
                     fclose(file);
                     return -1;
@@ -768,8 +755,6 @@ int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg) {
 				fprintf(file, "\t\toffset: 0x%08X\n", cfg->commands[i].cmd_42.offset);
 				fprintf(file, "\t\tcount: 0x%08X\n", cfg->commands[i].cmd_42.count);
 				write_data(file, (uint8_t *) &cfg->commands[i].cmd_42.param, 4*cfg->commands[i].cmd_42.count, 0, 5);
-				
-               
 				break;
 			}
 			case 0x4B:
@@ -778,7 +763,7 @@ int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg) {
 				fprintf(file, "\t\tRedirect: 0x%08X\n", cfg->commands[i].cmd_4B.Redirect);
 				fprintf(file, "\t\t\tID: ");	
 				if( cfg->commands[i].cmd_4B.Redirect == -1) {
-					write_data(file, (uint8_t *) &cfg->commands[i].cmd_4B.data, 0x10, 0, 0);
+					write_data(file, cfg->commands[i].cmd_4B.data, 0x10, 0, 0);
 				} else {
 					fprintf(file, "%s\n", (char *) cfg->commands[i].cmd_4B.data);
 				}

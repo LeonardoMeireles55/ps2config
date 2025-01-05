@@ -57,7 +57,7 @@ typedef struct {
         struct {
             uint32_t offset;
             uint32_t Redirect;
-            uint32_t data[0x10];
+            uint8_t data[0x10];
         } cmd_4B;
         struct {
             uint16_t param[2];
