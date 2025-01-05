@@ -139,7 +139,7 @@ s32 emuID[0x51][3] = {
 	{    -1,    -1, 0x3F},
 	{    -1,    -1, 0x40},
 	{    -1,    -1, 0x41},
-	{    -1,    -1, 0x42},
+	{  0x2C,    -1, 0x42},
 	{    -1,    -1, 0x43},
 	{    -1,    -1, 0x44},
 	{    -1,    -1, 0x45},
@@ -377,11 +377,22 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 			}
 			case 0x2C:
 			{
-				gxCmd->cmd_2C.DataCount = netCmd->cmd_0A.count;
-				for(uint32_t j=0; j<gxCmd->cmd_09.DataCount; j++) {
-					gxCmd->cmd_2C.data[j].offset = netCmd->cmd_0A.data[j].offset;
-					gxCmd->cmd_2C.data[j].ReplaceData = netCmd->cmd_0A.data[j].ReplaceData;
-					gxCmd->cmd_2C.data[j].OriginalData = netCmd->cmd_0A.data[j].OriginalData;
+				if(netID == 0x42) {
+					if( 0x100000 < netCmd->cmd_42.offset) continue;
+					//original data always 0 before 0x100000
+					gxCmd->cmd_2C.DataCount = netCmd->cmd_42.count;
+					for(uint32_t j=0; j<gxCmd->cmd_09.DataCount; j++) {
+						gxCmd->cmd_2C.data[j].offset = netCmd->cmd_42.offset + j*4;
+						gxCmd->cmd_2C.data[j].ReplaceData = netCmd->cmd_42.param[j];
+					}
+				} else
+				if(netID == 0x0A) {
+					gxCmd->cmd_2C.DataCount = netCmd->cmd_0A.count;
+					for(uint32_t j=0; j<gxCmd->cmd_09.DataCount; j++) {
+						gxCmd->cmd_2C.data[j].offset = netCmd->cmd_0A.data[j].offset;
+						gxCmd->cmd_2C.data[j].ReplaceData = netCmd->cmd_0A.data[j].ReplaceData;
+						gxCmd->cmd_2C.data[j].OriginalData = netCmd->cmd_0A.data[j].OriginalData;
+					}
 				}
 				break;
 			}
