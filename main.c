@@ -478,7 +478,7 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 			case 0x2C:
 			{
 				gxCmd->cmd_2C.DataOffset = virt_DataOffset;
-				virt_DataOffset += gxCmd->cmd_2C.DataCount * 0xC;
+				virt_DataOffset += gxCmd->cmd_2C.DataCount * 0x18;
 				break;
 			}
 			default:
