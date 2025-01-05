@@ -92,6 +92,25 @@ void es_GxCommand(GxCommand* command) {
             }
             break;
         }
+        case 0x2C:
+        {
+            ES_BE(command->cmd_2C.DataOffset);
+            ES_BE(command->cmd_2C.DataCount);
+            uint32_t count = command->cmd_2C.DataCount;
+            if(count > 0x1000) {
+                ES_BE(count);
+                if(count > 0x1000) {	
+                    fprintf(stderr, "cmdid too big\n");
+                    return;
+                }
+            }
+            for (uint32_t i = 0; i < count; i++) {
+                ES_BE(command->cmd_2C.data[i].offset);
+                ES_BE(command->cmd_2C.data[i].ReplaceData);
+                ES_BE(command->cmd_2C.data[i].OriginalData);
+            }
+            break;
+        }
         case 0x10:
         {
             ES_BE(command->cmd_10.DataOffset);
@@ -290,6 +309,38 @@ int load_GxCfg(const char* filename, GxCfg_t* cfg) {
                 }
                 if( fseek(file, current, SEEK_SET) != 0) {
                     perror("Error seeking 2 cmd_09\n");
+                    goto end;
+                }
+                break;
+            }
+            case 0x2C:
+            {
+                if( fread(&cfg->commands[i].cmd_2C.DataOffset, sizeof(uint64_t), 1, file) != 1 ||
+                    fread(&cfg->commands[i].cmd_2C.DataCount, sizeof(uint32_t), 1, file) != 1 ||
+                    fread(cfg->commands[i].cmd_2C.align, sizeof(uint8_t), 4, file) != 4 ) {
+                    perror("Error reading cmd_2C\n");
+                    goto end;
+                }
+                u32 count = SWAP_BE(cfg->commands[i].cmd_2C.DataCount);
+                u32 current = ftell(file);
+                u32 offset = SWAP_BE(cfg->commands[i].cmd_2C.DataOffset) - GX_DATA_OFFSET + sizeof(GxHeader);
+                if( fseek(file, offset, SEEK_SET) != 0) {
+                    perror("Error seeking 1 cmd_2C\n");
+                    goto end;
+                }
+                for (uint32_t j = 0; j < count; j++) {
+                    if( fread(&cfg->commands[i].cmd_2C.data[j].offset, sizeof(uint32_t), 1, file) != 1 ||
+                        fread(cfg->commands[i].cmd_2C.data[j].align_off, sizeof(uint8_t), 4, file) != 4 ||
+                        fread(&cfg->commands[i].cmd_2C.data[j].OriginalData, sizeof(uint32_t), 1, file) != 1 ||
+                        fread(cfg->commands[i].cmd_2C.data[j].align_ori, sizeof(uint8_t), 4, file) != 4 ||
+                        fread(&cfg->commands[i].cmd_2C.data[j].ReplaceData, sizeof(uint32_t), 1, file) != 1 ||
+                        fread(cfg->commands[i].cmd_2C.data[j].align_rep, sizeof(uint8_t), 4, file) != 4 ) {
+                        perror("Error reading cmd_2C\n");
+                        goto end;
+                    }
+                }
+                if( fseek(file, current, SEEK_SET) != 0) {
+                    perror("Error seeking 2 cmd_2C\n");
                     goto end;
                 }
                 break;
@@ -549,6 +600,38 @@ int save_GxCfg(const char* filename, GxCfg_t* cfg) {
                 }
                 break;
             }
+            case 0x2C:
+            {
+                if( fwrite(&cfg->commands[i].cmd_2C.DataOffset, sizeof(uint64_t), 1, file) != 1 ||
+                    fwrite(&cfg->commands[i].cmd_2C.DataCount, sizeof(uint32_t), 1, file) != 1 ||
+                    fwrite(cfg->commands[i].cmd_2C.align, sizeof(uint8_t), 4, file) != 4 ) {
+                    perror("Error reading cmd_2C\n");
+                    goto end;
+                }
+                u32 count = SWAP_BE(cfg->commands[i].cmd_2C.DataCount);
+                u32 current = ftell(file);
+                u32 offset = SWAP_BE(cfg->commands[i].cmd_2C.DataOffset) - GX_DATA_OFFSET + sizeof(GxHeader);
+                if( fseek(file, offset, SEEK_SET) != 0) {
+                    perror("Error seeking 1 cmd_2C\n");
+                    goto end;
+                }
+                for (uint32_t j = 0; j < count; j++) {
+                    if( fwrite(&cfg->commands[i].cmd_2C.data[j].offset, sizeof(uint32_t), 1, file) != 1 ||
+                        fwrite(cfg->commands[i].cmd_2C.data[j].align_off, sizeof(uint8_t), 4, file) != 4 ||
+                        fwrite(&cfg->commands[i].cmd_2C.data[j].OriginalData, sizeof(uint32_t), 1, file) != 1 ||
+                        fwrite(cfg->commands[i].cmd_2C.data[j].align_ori, sizeof(uint8_t), 4, file) != 4 ||
+                        fwrite(&cfg->commands[i].cmd_2C.data[j].ReplaceData, sizeof(uint32_t), 1, file) != 1 ||
+                        fwrite(cfg->commands[i].cmd_2C.data[j].align_rep, sizeof(uint8_t), 4, file) != 4 ) {
+                        perror("Error reading cmd_2C\n");
+                        goto end;
+                    }
+                }
+                if( fseek(file, current, SEEK_SET) != 0) {
+                    perror("Error seeking 2 cmd_2C\n");
+                    goto end;
+                }
+                break;
+            }
             case 0x10:
             {
                 if (fwrite(&cfg->commands[i].cmd_10.DataOffset, sizeof(uint64_t), 1, file) != 1 ||
@@ -687,8 +770,8 @@ int GxCfg_to_txt(FILE* file, const GxCfg_t* cfg) {
                 for (uint32_t j = 0; j < count; j++) {
                     fprintf(file, "\t\t#%d offset       : 0x%08X\n", j, cfg->commands[i].cmd_08.data[j].offset);
                     print_align(file, cfg->commands[i].cmd_08.data[j].align, sizeof(cfg->commands[i].cmd_08.data[j].align));
-                    fprintf(file, "\t\t#%d OriginalData : %08X %08X\n", j, cfg->commands[i].cmd_08.data[j].OriginalData[0], cfg->commands[i].cmd_08.data[j].OriginalData[1]);
-                    fprintf(file, "\t\t#%d ReplaceData  : %08X %08X\n", j, cfg->commands[i].cmd_08.data[j].ReplaceData[0], cfg->commands[i].cmd_08.data[j].ReplaceData[1]);
+                    fprintf(file, "\t\t#%d OriginalData : %08X %08X\n", j, cfg->commands[i].cmd_08.data[j].OriginalData, cfg->commands[i].cmd_08.data[j].OriginalData[1]);
+                    fprintf(file, "\t\t#%d ReplaceData  : %08X %08X\n", j, cfg->commands[i].cmd_08.data[j].ReplaceData, cfg->commands[i].cmd_08.data[j].ReplaceData[1]);
                 }
                 break;
             } 
@@ -710,6 +793,22 @@ int GxCfg_to_txt(FILE* file, const GxCfg_t* cfg) {
                     write_data(file, (uint8_t *) &cfg->commands[i].cmd_09.data[j].ReplaceData, cfg->commands[i].cmd_09.data[j].size, 0, 4);
                     fprintf(file, "\t\t#%d OriginalData : \n", j);
                     write_data(file, (uint8_t *) &cfg->commands[i].cmd_09.data[j].OriginalData, cfg->commands[i].cmd_09.data[j].size, 0, 4);
+                }
+                break;
+            }
+            case 0x2C:
+            {
+                fprintf(file, "\t\tDataOffset : 0x%016llX\n", cfg->commands[i].cmd_2C.DataOffset);
+                fprintf(file, "\t\tDataCount  : 0x%08lX\n", cfg->commands[i].cmd_2C.DataCount);
+				print_align(file, cfg->commands[i].cmd_2C.align, sizeof(cfg->commands[i].cmd_2C.align));
+                uint32_t count = cfg->commands[i].cmd_2C.DataCount;
+                for (uint32_t j = 0; j < count; j++) {
+                    fprintf(file, "\t\t#%d offset       : 0x%08X\n", j, cfg->commands[i].cmd_2C.data[j].offset);
+                    print_align(file, cfg->commands[i].cmd_2C.data[j].align_off, sizeof(cfg->commands[i].cmd_2C.data[j].align_off));
+                    fprintf(file, "\t\t#%d OriginalData : %08X\n", j, cfg->commands[i].cmd_2C.data[j].OriginalData);
+                    print_align(file, cfg->commands[i].cmd_2C.data[j].align_ori, sizeof(cfg->commands[i].cmd_2C.data[j].align_ori));
+                    fprintf(file, "\t\t#%d ReplaceData  : %08X\n", j, cfg->commands[i].cmd_2C.data[j].ReplaceData);
+                    print_align(file, cfg->commands[i].cmd_2C.data[j].align_rep, sizeof(cfg->commands[i].cmd_2C.data[j].align_rep));
                 }
                 break;
             }

@@ -83,7 +83,7 @@ s32 emuID[0x51][3] = {
 	{  0x06,  0x06, 0x07},
 	{  0x07,  0x07, 0x08},
 	{  0x08,  0x08, 0x09},
-	{    -1,    -1, 0x0A},
+	{  0x2C,    -1, 0x0A},
 	{  0x09,  0x09, 0x0B},
 	{  0x0A,  0x0A, 0x0C},
 	{  0x0B,  0x0B, 0x0D},
@@ -375,6 +375,16 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 				}
 				break;
 			}
+			case 0x2C:
+			{
+				gxCmd->cmd_2C.DataCount = netCmd->cmd_0A.count;
+				for(uint32_t j=0; j<gxCmd->cmd_09.DataCount; j++) {
+					gxCmd->cmd_2C.data[j].offset = netCmd->cmd_0A.data[j].offset;
+					gxCmd->cmd_2C.data[j].ReplaceData = netCmd->cmd_0A.data[j].ReplaceData;
+					gxCmd->cmd_2C.data[j].OriginalData = netCmd->cmd_0A.data[j].OriginalData;
+				}
+				break;
+			}
 			case 0x10:
 			{
 				gxCmd->cmd_10.DataCount = netCmd->cmd_12.count;
@@ -452,6 +462,12 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 			{
 				gxCmd->cmd_10.DataOffset = virt_DataOffset;
 				virt_DataOffset += gxCmd->cmd_10.DataCount * 4;
+				break;
+			}
+			case 0x2C:
+			{
+				gxCmd->cmd_2C.DataOffset = virt_DataOffset;
+				virt_DataOffset += gxCmd->cmd_2C.DataCount * 0xC;
 				break;
 			}
 			default:
