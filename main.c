@@ -296,13 +296,13 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 	gxCfg->header.cmdCount=0;
 	gxCfg->header.hashTitle=0;
 
-	gxCfg->commands = calloc(0x400000, 1);
+	gxCfg->commands = calloc(0x100, sizeof(GxCommand));
 	if (!gxCfg->commands) {
 		perror("Error allocating memory for GX commands");
 		goto end;
 	}
 
-	for (uint32_t i = 0; i < netCfg->cmdCount; i++) {
+	for (uint32_t i = 0; i<netCfg->cmdCount; i++) {
 		NetCommand* netCmd = &netCfg->commands[i];
 		GxCommand* gxCmd = &gxCfg->commands[gxCfg->header.cmdCount];
 
@@ -328,71 +328,137 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 
 		switch (gxID) {
 			case 0x00: // net 0x01
-				if( 0x34 <= netCmd->cmd_01.FuncId) {
+			{
+				if( 0x34 <= netCmd->cmd_01.FuncId || netCmd->cmd_01.FuncId == 0x2E) {
 					//fprintf(stderr, "Unsupported NET command ID: 0x%02X | FunctionID: 0x%08lX\n", netID, netCmd->cmd_01.FuncId);
 					continue;
 				}
 				gxCmd->cmd_00.EEOffset = netCmd->cmd_01.offset;
 				gxCmd->cmd_00.FuncIDOffset = GxFuncFuncIdOffset[netCmd->cmd_01.FuncId];
 				break;
-				
+			}
 			//u32
 			case 0x01: case 0x03: case 0x06: case 0x0B: case 0x0C: case 0x0F:
             case 0x13: case 0x1C: case 0x1E: case 0x21: case 0x24: case 0x28: case 0x2A: case 0x2B:
+			{
 				gxCmd->oneU32.param = netCmd->oneU32.param;
 				break;
-			/*
-			//u64 data //u32 count
-			case 0x08: case 0x09: case 0x10:
-				gxCmd->cmd_type1.DataOffset = GX_DATA_OFFSET + 0x18*(gxCfg->header.cmdCount+1);
-				uint32_t dataCount;
-				
-				if( gxID == 0x08 ) { //net 09
-					dataCount = netCmd->cmd_09.count;
-				} else
-				if( gxID == 0x09 ) { //net 0B
-					dataCount = netCmd->cmd_0B.count;
-				} else 
-				if( gxID == 0x10 ) { // net 12
-					dataCount = netCmd->oneArrayU32.count;
-				}
-				gxCmd->cmd_type1.DataCount = dataCount;
-                break;
-
-			 case 0x07:
-				gxCmd->oneU64.param = GX_DATA_OFFSET + 0x18*(gxCfg->header.cmdCount+1);
+			}
+			case 0x07:
+			{
+				memcpy(gxCmd->cmd_07.OriginalDataMask, netCmd->cmd_08.OriginalDataMask, sizeof(netCmd->cmd_08.OriginalDataMask));
+				memcpy(gxCmd->cmd_07.OriginalData, netCmd->cmd_08.OriginalData, sizeof(netCmd->cmd_08.OriginalData));
+				memcpy(gxCmd->cmd_07.ReplaceDataMask, netCmd->cmd_08.ReplaceDataMask, sizeof(netCmd->cmd_08.ReplaceDataMask));
+				memcpy(gxCmd->cmd_07.ReplaceData, netCmd->cmd_08.ReplaceData, sizeof(netCmd->cmd_08.ReplaceData));
 				break;
-			*/
+			}
+			case 0x08:
+			{
+				gxCmd->cmd_08.DataCount = netCmd->cmd_09.count;
+				for(uint32_t j=0; j<gxCmd->cmd_08.DataCount; j++) {
+					gxCmd->cmd_08.data[j].offset = netCmd->cmd_09.data[j].offset;
+					memcpy(gxCmd->cmd_08.data[j].OriginalData, netCmd->cmd_09.data[j].OriginalData, sizeof(netCmd->cmd_09.data[j].OriginalData));
+					memcpy(gxCmd->cmd_08.data[j].ReplaceData, netCmd->cmd_09.data[j].ReplaceData, sizeof(netCmd->cmd_09.data[j].ReplaceData));
+				}
+				break;
+			}
+			case 0x09:
+			{
+				gxCmd->cmd_09.DataCount = netCmd->cmd_0B.count;
+				for(uint32_t j=0; j<gxCmd->cmd_09.DataCount; j++) {
+					gxCmd->cmd_09.data[j].offset = netCmd->cmd_0B.data[j].offset;
+					gxCmd->cmd_09.data[j].sector = netCmd->cmd_0B.data[j].sector;
+					gxCmd->cmd_09.data[j].size = netCmd->cmd_0B.data[j].size;
+
+					memcpy(gxCmd->cmd_09.data[j].ReplaceData, netCmd->cmd_0B.data[j].ReplaceData, sizeof(netCmd->cmd_0B.data[j].ReplaceData));
+					memcpy(gxCmd->cmd_09.data[j].OriginalData, netCmd->cmd_0B.data[j].OriginalData, sizeof(netCmd->cmd_0B.data[j].OriginalData));
+				}
+				break;
+			}
+			case 0x10:
+			{
+				gxCmd->cmd_10.DataCount = netCmd->cmd_12.count;
+				memcpy(gxCmd->cmd_10.param, netCmd->cmd_12.param, sizeof(netCmd->cmd_12.param));
+				break;
+			}
 			// u8 net 16 17 1D 1E
             case 0x14: case 0x15: case 0x1A: case 0x1B:
+			{
                 gxCmd->oneU32.param = netCmd->oneU32.param;
 				break;
-			
-           
+			}
 			// u64 net 13 20 24
 			case 0x11: case 0x1D: case 0x20:
+			{
 				gxCmd->oneU64.param = netCmd->oneU64.param;
                 break;
-			
+			}
 			// 2 u16 net 0C
             case 0x0A:
-				gxCfg->commands[gxCfg->header.cmdCount].twoU16.param[0] = netCmd->twoU16.param[0];
-				gxCfg->commands[gxCfg->header.cmdCount].twoU16.param[1] = netCmd->twoU16.param[1];
+			{
+				memcpy(gxCmd->twoU16.param, netCmd->twoU16.param, sizeof(netCmd->twoU16.param));
 				break;
-				
+			}
 			// 2 u32 
             case 0x0D: case 0x0E: case 0x22: case 0x23: case 0x25:
-				gxCmd->twoU32.param[0] = netCmd->twoU32.param[0];
-				gxCmd->twoU32.param[1] = netCmd->twoU32.param[1];
+			{
+				memcpy(gxCmd->twoU32.param, netCmd->twoU32.param, sizeof(netCmd->twoU32.param));
 				break;
+			}
 			case 0x02: case 0x04: case 0x05: case 0x12: case 0x16: case 0x17: case 0x18: case 0x19:
             case 0x1F: case 0x26: case 0x27: case 0x29:
+			{
 				break;
+			}
             default:
+			{
 				fprintf(stderr, "Unhandled GX command ID: 0x%02X\n", gxID);
-				break;
+				continue;
+			}
 		}
 		gxCfg->header.cmdCount++;
+	}
+
+	u64 virt_DataOffset = GX_DATA_OFFSET + 0x18*gxCfg->header.cmdCount;
+	for (uint32_t i = 0; i<gxCfg->header.cmdCount; i++) {
+		GxCommand* gxCmd = &gxCfg->commands[i];
+		switch(gxCmd->cmdId)
+		{
+			case 0x07:
+			{
+				gxCmd->cmd_07.DataOffset = virt_DataOffset;
+				virt_DataOffset += 0x20;
+				break;
+			}
+			case 0x08:
+			{
+				gxCmd->cmd_08.DataOffset = virt_DataOffset;
+				virt_DataOffset += 0x18*gxCmd->cmd_08.DataCount;
+				break;
+			}
+			case 0x09:
+			{
+				gxCmd->cmd_09.DataOffset = virt_DataOffset;
+				virt_DataOffset += 0x20*gxCmd->cmd_09.DataCount;
+				for(uint32_t j=0; j<gxCmd->cmd_09.DataCount; j++) {
+					gxCmd->cmd_09.data[j].ReplaceDataOffset = virt_DataOffset;
+					virt_DataOffset += gxCmd->cmd_09.data[j].size;
+					gxCmd->cmd_09.data[j].OriginalDataOffset = virt_DataOffset;
+					virt_DataOffset += gxCmd->cmd_09.data[j].size;
+				}
+				break;
+			}
+			case 0x10:
+			{
+				gxCmd->cmd_10.DataOffset = virt_DataOffset;
+				virt_DataOffset += gxCmd->cmd_10.DataCount * 4;
+				break;
+			}
+			default:
+			{
+				break;
+			}
+		}
 	}
 	ret=0;
 end:

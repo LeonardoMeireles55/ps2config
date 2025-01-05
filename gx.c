@@ -823,7 +823,7 @@ int GxCfg_scandir_to_txt(char* dirpath, char* logpath) {
 int gxcfg_log(char *filename, char *logpath)
 {
     if (!gxLog) {
-        gxLog = fopen("gxlog.txt", "w");
+        gxLog = fopen(logpath, "w");
         if (!gxLog) {
             perror("Error opening log file");
             return -1;
