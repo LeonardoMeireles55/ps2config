@@ -377,23 +377,34 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 			}
 			case 0x2C:
 			{
+				u8 cmdExist = 0;
+				for (uint32_t j = 0; j < gxCfg->header.cmdCount; j++) {
+					if(gxCfg->commands[j].cmdId == 0x2C) {
+						gxCmd = &gxCfg->commands[j];
+						cmdExist=1;
+					}
+				}
+
 				if(netID == 0x42) {
 					if( 0x100000 < netCmd->cmd_42.offset) continue;
 					//original data always 0 before 0x100000
+					
 					gxCmd->cmd_2C.DataCount = netCmd->cmd_42.count;
-					for(uint32_t j=0; j<gxCmd->cmd_09.DataCount; j++) {
+					for(uint32_t j=gxCmd->cmd_2C.DataCount; j<gxCmd->cmd_2C.DataCount+netCmd->cmd_42.count; j++) {
 						gxCmd->cmd_2C.data[j].offset = netCmd->cmd_42.offset + j*4;
 						gxCmd->cmd_2C.data[j].ReplaceData = netCmd->cmd_42.param[j];
 					}
+					gxCmd->cmd_2C.DataCount += netCmd->cmd_42.count;
 				} else
 				if(netID == 0x0A) {
-					gxCmd->cmd_2C.DataCount = netCmd->cmd_0A.count;
-					for(uint32_t j=0; j<gxCmd->cmd_09.DataCount; j++) {
+					for(uint32_t j=gxCmd->cmd_2C.DataCount; j<gxCmd->cmd_09.DataCount+netCmd->cmd_0A.count; j++) {
 						gxCmd->cmd_2C.data[j].offset = netCmd->cmd_0A.data[j].offset;
 						gxCmd->cmd_2C.data[j].ReplaceData = netCmd->cmd_0A.data[j].ReplaceData;
 						gxCmd->cmd_2C.data[j].OriginalData = netCmd->cmd_0A.data[j].OriginalData;
 					}
+					gxCmd->cmd_2C.DataCount += netCmd->cmd_0A.count;
 				}
+				if(cmdExist) continue;
 				break;
 			}
 			case 0x10:
@@ -579,7 +590,7 @@ void scan_task(const char *in, void (*func)(), const char *arg1, uint8_t arg2) {
 }
 
 static void print_help() {
-	printf( "\nUsage of ps2config-cmd v0.1\n"
+	printf( "\nUsage of ps2config-cmd v0.2\n"
 			"    Format\n"
 			"        ps2config-cmd.exe [option] <mode> <input> <output>\n"
 			"    Description\n"
