@@ -361,10 +361,11 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 						cmdExist=1;
 					}
 				}
-				for(uint32_t j=gxCmd->cmd_08.DataCount; j<gxCmd->cmd_08.DataCount+netCmd->cmd_09.count; j++) {
-					gxCmd->cmd_08.data[j].offset = netCmd->cmd_09.data[j].offset;
-					memcpy(gxCmd->cmd_08.data[j].OriginalData, netCmd->cmd_09.data[j].OriginalData, sizeof(netCmd->cmd_09.data[j].OriginalData));
-					memcpy(gxCmd->cmd_08.data[j].ReplaceData, netCmd->cmd_09.data[j].ReplaceData, sizeof(netCmd->cmd_09.data[j].ReplaceData));
+				for(uint32_t j=0; j<netCmd->cmd_09.count; j++) {
+					uint32_t k = gxCmd->cmd_08.DataCount + j;
+					gxCmd->cmd_08.data[k].offset = netCmd->cmd_09.data[j].offset;
+					memcpy(gxCmd->cmd_08.data[k].OriginalData, netCmd->cmd_09.data[j].OriginalData, sizeof(netCmd->cmd_09.data[j].OriginalData));
+					memcpy(gxCmd->cmd_08.data[k].ReplaceData, netCmd->cmd_09.data[j].ReplaceData, sizeof(netCmd->cmd_09.data[j].ReplaceData));
 				}
 				gxCmd->cmd_08.DataCount += netCmd->cmd_09.count;
 				if(cmdExist) continue;
@@ -386,7 +387,7 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 			case 0x2C:
 			{
 				u8 cmdExist = 0;
-				for (uint32_t j = 0; j < gxCfg->header.cmdCount; j++) {
+				for (uint32_t j = 0; j<gxCfg->header.cmdCount; j++) {
 					if(gxCfg->commands[j].cmdId == 0x2C) {
 						gxCmd = &gxCfg->commands[j];
 						cmdExist=1;
@@ -395,17 +396,19 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 				if(netID == 0x42) {
 					if( 0x100000 < netCmd->cmd_42.offset) continue;
 					//original data always 0 before 0x100000
-					for(uint32_t j=gxCmd->cmd_2C.DataCount; j<gxCmd->cmd_2C.DataCount+netCmd->cmd_42.count; j++) {
-						gxCmd->cmd_2C.data[j].offset = netCmd->cmd_42.offset + (j-gxCmd->cmd_2C.DataCount)*4;
-						gxCmd->cmd_2C.data[j].ReplaceData = netCmd->cmd_42.param[j];
+					for(uint32_t j=0; j<netCmd->cmd_42.count; j++) {
+						uint32_t k = gxCmd->cmd_2C.DataCount + j;
+						gxCmd->cmd_2C.data[k].offset = netCmd->cmd_42.offset + j*4;
+						gxCmd->cmd_2C.data[k].ReplaceData = netCmd->cmd_42.param[j];
 					}
 					gxCmd->cmd_2C.DataCount += netCmd->cmd_42.count;
 				} else
 				if(netID == 0x0A) {
-					for(uint32_t j=gxCmd->cmd_2C.DataCount; j<gxCmd->cmd_09.DataCount+netCmd->cmd_0A.count; j++) {
-						gxCmd->cmd_2C.data[j].offset = netCmd->cmd_0A.data[j].offset;
-						gxCmd->cmd_2C.data[j].ReplaceData = netCmd->cmd_0A.data[j].ReplaceData;
-						gxCmd->cmd_2C.data[j].OriginalData = netCmd->cmd_0A.data[j].OriginalData;
+					for(uint32_t j=0; j<netCmd->cmd_0A.count; j++) {
+						uint32_t k = gxCmd->cmd_2C.DataCount + j;
+						gxCmd->cmd_2C.data[k].offset = netCmd->cmd_0A.data[j].offset;
+						gxCmd->cmd_2C.data[k].ReplaceData = netCmd->cmd_0A.data[j].ReplaceData;
+						gxCmd->cmd_2C.data[k].OriginalData = netCmd->cmd_0A.data[j].OriginalData;
 					}
 					gxCmd->cmd_2C.DataCount += netCmd->cmd_0A.count;
 				}
