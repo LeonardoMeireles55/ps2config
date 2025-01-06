@@ -395,10 +395,8 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 				if(netID == 0x42) {
 					if( 0x100000 < netCmd->cmd_42.offset) continue;
 					//original data always 0 before 0x100000
-					
-					gxCmd->cmd_2C.DataCount = netCmd->cmd_42.count;
 					for(uint32_t j=gxCmd->cmd_2C.DataCount; j<gxCmd->cmd_2C.DataCount+netCmd->cmd_42.count; j++) {
-						gxCmd->cmd_2C.data[j].offset = netCmd->cmd_42.offset + j*4;
+						gxCmd->cmd_2C.data[j].offset = netCmd->cmd_42.offset + (j-gxCmd->cmd_2C.DataCount)*4;
 						gxCmd->cmd_2C.data[j].ReplaceData = netCmd->cmd_42.param[j];
 					}
 					gxCmd->cmd_2C.DataCount += netCmd->cmd_42.count;
