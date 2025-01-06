@@ -354,12 +354,20 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 			}
 			case 0x08:
 			{
-				gxCmd->cmd_08.DataCount = netCmd->cmd_09.count;
-				for(uint32_t j=0; j<gxCmd->cmd_08.DataCount; j++) {
+				u8 cmdExist = 0;
+				for (uint32_t j = 0; j < gxCfg->header.cmdCount; j++) {
+					if(gxCfg->commands[j].cmdId == 0x08) {
+						gxCmd = &gxCfg->commands[j];
+						cmdExist=1;
+					}
+				}
+				for(uint32_t j=gxCmd->cmd_08.DataCount; j<gxCmd->cmd_08.DataCount+netCmd->cmd_09.count; j++) {
 					gxCmd->cmd_08.data[j].offset = netCmd->cmd_09.data[j].offset;
 					memcpy(gxCmd->cmd_08.data[j].OriginalData, netCmd->cmd_09.data[j].OriginalData, sizeof(netCmd->cmd_09.data[j].OriginalData));
 					memcpy(gxCmd->cmd_08.data[j].ReplaceData, netCmd->cmd_09.data[j].ReplaceData, sizeof(netCmd->cmd_09.data[j].ReplaceData));
 				}
+				gxCmd->cmd_08.DataCount += netCmd->cmd_09.count;
+				if(cmdExist) continue;
 				break;
 			}
 			case 0x09:
@@ -384,7 +392,6 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 						cmdExist=1;
 					}
 				}
-
 				if(netID == 0x42) {
 					if( 0x100000 < netCmd->cmd_42.offset) continue;
 					//original data always 0 before 0x100000
