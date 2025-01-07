@@ -10,5 +10,6 @@ char* custom_basename(char* path);
 int isDirExist(const char *path);
 int isFileExist(const char *path);
 void write_data(FILE *file, uint8_t *data, uint32_t size, uint8_t check_align, uint8_t indent);
+void write_data32(FILE *file, uint32_t *data, uint32_t count, uint8_t check_align, uint8_t indent);
 
 #endif // UTIL_H

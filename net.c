@@ -691,13 +691,11 @@ int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg) {
 			{
 				fprintf(file, "\t\tcount: 0x%08X\n", cfg->commands[i].cmd_09.count);
 				for (uint32_t j = 0; j < cfg->commands[i].cmd_09.count; j++) {
-					fprintf(file, "\t\t\toffset: 0x%08X\n", cfg->commands[i].cmd_09.data[j].offset);
+					fprintf(file, "\t\t\t#%X\n", j);
+					fprintf(file, "\t\t\t\toffset: 0x%08X\n", cfg->commands[i].cmd_09.data[j].offset);
 					
-					fprintf(file, "\t\t\tOriginalData:\n");
-					write_data(file, (uint8_t *) &cfg->commands[i].cmd_09.data[j].OriginalData, 8, 0, 5);
-				
-					fprintf(file, "\t\t\tReplaceData:\n");
-					write_data(file, (uint8_t *) &cfg->commands[i].cmd_09.data[j].ReplaceData, 8, 0, 5);
+					fprintf(file, "\t\t\t\tOriginalData: %08X %08X\n", cfg->commands[i].cmd_09.data[j].OriginalData[0], cfg->commands[i].cmd_09.data[j].OriginalData[1]);
+					fprintf(file, "\t\t\t\tReplaceData : %08X %08X\n", cfg->commands[i].cmd_09.data[j].ReplaceData[0], cfg->commands[i].cmd_09.data[j].ReplaceData[1]);
 				}
 				break;
 			}
@@ -705,13 +703,11 @@ int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg) {
 			{
 				fprintf(file, "\t\tcount: 0x%08X\n", cfg->commands[i].cmd_0A.count);
 				for (uint32_t j = 0; j < cfg->commands[i].cmd_0A.count; j++) {
-					fprintf(file, "\t\t\toffset: 0x%08X\n", cfg->commands[i].cmd_0A.data[j].offset);
+					fprintf(file, "\t\t\t#%X\n", j);
+					fprintf(file, "\t\t\t\toffset: 0x%08X\n", cfg->commands[i].cmd_0A.data[j].offset);
+					fprintf(file, "\t\t\t\tOriginalData: %08X\n", cfg->commands[i].cmd_0A.data[j].OriginalData);
+					fprintf(file, "\t\t\t\tReplaceData: %08X\n", cfg->commands[i].cmd_0A.data[j].ReplaceData);
 					
-					fprintf(file, "\t\t\tOriginalData:\n");
-					write_data(file, (uint8_t *) &cfg->commands[i].cmd_0A.data[j].OriginalData, 4, 0, 5);
-					
-					fprintf(file, "\t\t\tReplaceData:\n");
-					write_data(file, (uint8_t *) &cfg->commands[i].cmd_0A.data[j].ReplaceData, 4, 0, 5);
 				}
 				break;
 			}
@@ -719,15 +715,16 @@ int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg) {
 			{
 				fprintf(file, "\t\tcount: 0x%08X\n", cfg->commands[i].cmd_0B.count);
 				for (uint32_t j = 0; j < cfg->commands[i].cmd_0B.count; j++) {
-					fprintf(file, "\t\t\tsector: 0x%08X\n", cfg->commands[i].cmd_0B.data[j].sector);
-					fprintf(file, "\t\t\toffset: 0x%08X\n", cfg->commands[i].cmd_0B.data[j].offset);
-					fprintf(file, "\t\t\tsize: 0x%08X\n", cfg->commands[i].cmd_0B.data[j].size);
+					fprintf(file, "\t\t\t#%X\n", j);
+					fprintf(file, "\t\t\t\tsector: 0x%08X\n", cfg->commands[i].cmd_0B.data[j].sector);
+					fprintf(file, "\t\t\t\toffset: 0x%08X\n", cfg->commands[i].cmd_0B.data[j].offset);
+					fprintf(file, "\t\t\t\tsize: 0x%08X\n", cfg->commands[i].cmd_0B.data[j].size);
 					
-					fprintf(file, "\t\t\tReplaceData:\n");
-					write_data(file, (uint8_t *) cfg->commands[i].cmd_0B.data[j].ReplaceData, cfg->commands[i].cmd_0B.data[j].size, 0, 5);
+					fprintf(file, "\t\t\t\tReplaceData:\n");
+					write_data32(file, cfg->commands[i].cmd_0B.data[j].ReplaceData, cfg->commands[i].cmd_0B.data[j].size/4, 0, 5);
 
-					fprintf(file, "\t\t\tOriginalData:\n");
-					write_data(file, (uint8_t *) cfg->commands[i].cmd_0B.data[j].OriginalData, cfg->commands[i].cmd_0B.data[j].size, 0, 5);
+					fprintf(file, "\t\t\t\tOriginalData:\n");
+					write_data32(file, cfg->commands[i].cmd_0B.data[j].OriginalData, cfg->commands[i].cmd_0B.data[j].size/4, 0, 5);
 				}
 				break;
 			}
@@ -740,9 +737,7 @@ int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg) {
 			case 0x12:
 			{
 				fprintf(file, "\t\tcount: 0x%08X\n", cfg->commands[i].cmd_12.count);
-				for (uint32_t j = 0; j < cfg->commands[i].cmd_12.count; j++) {
-					fprintf(file, "\t\t\tparam[%u]: 0x%08X\n", j, cfg->commands[i].cmd_12.param[j]);
-				}
+				write_data32(file, cfg->commands[i].cmd_12.param, cfg->commands[i].cmd_12.count, 0, 5);
 				break;
 			}
 			case 0x13: case 0x20: case 0x24:
@@ -754,7 +749,7 @@ int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg) {
 			{
 				fprintf(file, "\t\toffset: 0x%08X\n", cfg->commands[i].cmd_42.offset);
 				fprintf(file, "\t\tcount: 0x%08X\n", cfg->commands[i].cmd_42.count);
-				write_data(file, (uint8_t *) &cfg->commands[i].cmd_42.param, 4*cfg->commands[i].cmd_42.count, 0, 5);
+				write_data32(file, cfg->commands[i].cmd_42.param, cfg->commands[i].cmd_42.count, 0, 5);
 				break;
 			}
 			case 0x4B:

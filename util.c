@@ -105,6 +105,26 @@ char* custom_basename(char* path) {
     return base ? base + 1 : path;
 }
 
+
+void write_data32(FILE *file, uint32_t *data, uint32_t count, uint8_t check_align, uint8_t indent) {
+	uint8_t flag=0;
+	for(int j=0; j < indent; j++) fprintf(file, "\t");
+	
+	for(int i=0; i<count; i++) {
+		fprintf(file, "%08X", data[i]);
+		if( data[i] != 0) flag=1;
+		if( count <= i+1) break;
+		if( (i+1)%4 == 0 ) {
+			fprintf(file, "\n");
+			for(int j=0; j < indent; j++) fprintf(file, "\t");
+		} else {
+            fprintf(file, " ");
+        }
+	}
+	if( flag && check_align ) fprintf(file, "  WARNING!");
+	fprintf(file, "\n");
+}
+
 void write_data(FILE *file, uint8_t *data, uint32_t size, uint8_t check_align, uint8_t indent) {
 	uint8_t flag=0;
 	for(int j=0; j < indent; j++) fprintf(file, "\t");
