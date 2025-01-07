@@ -707,7 +707,6 @@ int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg) {
 					fprintf(file, "\t\t\t\toffset: 0x%08X\n", cfg->commands[i].cmd_0A.data[j].offset);
 					fprintf(file, "\t\t\t\tOriginalData: %08X\n", cfg->commands[i].cmd_0A.data[j].OriginalData);
 					fprintf(file, "\t\t\t\tReplaceData: %08X\n", cfg->commands[i].cmd_0A.data[j].ReplaceData);
-					
 				}
 				break;
 			}
