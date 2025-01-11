@@ -5,6 +5,8 @@
 #include <dirent.h>
 #include <openssl/evp.h>
 #include <openssl/md5.h>
+#include <errno.h>
+
 
 
 int get_md5(const char *path, unsigned char *md5_result, uint32_t length) {
@@ -143,21 +145,38 @@ void write_data(FILE *file, uint8_t *data, uint32_t size, uint8_t check_align, u
 	fprintf(file, "\n");
 }
 
-int isFileExist(const char *path) {
-	struct stat buffer;
-	FILE *file = fopen(path, "r");
-	if (file) {
-		fclose(file);
-		return 0;
-	}
-	return 1;
+int isDirExist(const char *path) {
+    struct stat path_stat;
+    
+    printf("Checking path: %s\n", path);
+    
+    if (stat(path, &path_stat) != 0) {
+        printf("stat() failed, errno: %d (%s)\n", errno, strerror(errno));
+        return 1;
+    }
+    
+    // Check if it's a directory
+    if (S_ISDIR(path_stat.st_mode)) {
+        printf("Directory exists\n");
+        return 0;
+    }
+
+    return 0;
 }
 
-int isDirExist(const char *path) {
-	DIR* dir = opendir(path);
-	if (dir) {
-		closedir(dir);
-		return 0;
-	}
-	return 1;
+int isFileExist(const char *path) {
+    struct stat path_stat;
+    
+    if (stat(path, &path_stat) != 0) {
+        printf("stat() failed, errno: %d (%s)\n", errno, strerror(errno));
+        return 1;
+    }
+    
+    // Check if it's a regular file
+    if (S_ISREG(path_stat.st_mode)) {
+        printf("File exists\n");
+        return 0;
+    }
+
+    return 0;
 }

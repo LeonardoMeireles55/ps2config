@@ -174,9 +174,19 @@ void getid(s32 *g, s32 *s, s32 *n) {
 	}
 }
 
+	int check_file_extension(const char* filename) {
+		const char* dot = strrchr(filename, '.');
+		if (!dot || dot == filename) return 0;
+		return strcasecmp(dot, ".CONFIG") == 0;
+	}
+
 // type 1: SLES-12345
 // type 2: SLES_123.45
 int check_TitleID_sanity(const char *title, int type) {
+	if (!check_file_extension(title)) {
+        return -1;
+    }
+
 	if (type == 1) {
 		if (strlen(title) != 10) {
 			return -1;
@@ -231,6 +241,8 @@ int check_TitleID_sanity(const char *title, int type) {
 }
 
 uint64_t getTitleHash(const char* title) {
+
+
 
 	if( check_TitleID_sanity(title, 2) != 0) {
 		if(title [0] == 0) return 0;
@@ -567,6 +579,8 @@ end:
 void scan_task(const char *in, void (*func)(), const char *arg1, uint8_t arg2) {
 	struct dirent *entry;
     DIR *dp = opendir(in);
+	
+	printf("Scanning %s\n", in);
 
     if (dp == NULL) {
         perror("opendir");
