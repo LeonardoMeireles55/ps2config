@@ -44,6 +44,7 @@ void es_NetCommand(NetCommand* command) {
 		}
         case 0x0F: case 0x10: case 0x26: case 0x27:
         case 0x29: case 0x48: case 0x4C:
+		case 0x13: case 0x20: case 0x24: // u64
 		{
             ES_LE_ARRAY(command->twoU32.param);
             break;
@@ -120,11 +121,6 @@ void es_NetCommand(NetCommand* command) {
             ES_LE(command->cmd_12.count);
 			ES_LE_ARRAY(command->cmd_12.param);
 			break;
-		}
-        case 0x13: case 0x20: case 0x24:
-		{
-            ES_LE(command->oneU64.param);
-            break;
 		}
         case 0x42:
 		{
@@ -210,6 +206,7 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
 			}
             case 0x0F: case 0x10: case 0x26: case 0x27:
 			case 0x29: case 0x48: case 0x4C:
+			case 0x13: case 0x20: case 0x24: // u64
 			{
                 if (fread(cfg->commands[cfg->cmdCount].twoU32.param, sizeof(uint32_t), 2, file) != 2) {
                     perror("Error reading twoU32 parameters");
@@ -324,14 +321,6 @@ int load_NetCfg(const char* filename, NetCfg_t* cfg) {
                     goto end;
 				}
                 break;
-			}
-            case 0x13: case 0x20: case 0x24:
-			{
-               	if( fread(&cfg->commands[cfg->cmdCount].oneU64.param, sizeof(uint64_t), 1, file) != 1) {
-					perror("Error reading oneU64");
-					goto end;
-				}
-				break;
 			}
 			case 0x42:
 			{
@@ -457,6 +446,7 @@ int save_NetCfg(const char* filename, NetCfg_t* cfg) {
 			}
 			case 0x0F: case 0x10: case 0x26: case 0x27:
 			case 0x29: case 0x48: case 0x4C:
+			case 0x13: case 0x20: case 0x24: // u64
 			{
                 if (fwrite(cfg->commands[i].twoU32.param, sizeof(uint32_t), 2, file) != 2) {
                     perror("Error writing twoU32 parameters");
@@ -572,15 +562,6 @@ int save_NetCfg(const char* filename, NetCfg_t* cfg) {
                 uint32_t count = SWAP_LE(cfg->commands[i].cmd_12.count);
                 if (fwrite(cfg->commands[i].cmd_12.param, sizeof(uint32_t), count, file) != count) {
                     perror("Error writing oneArrayU32 data");
-                    fclose(file);
-                    return -1;
-                }
-                break;
-			}
-            case 0x13: case 0x20: case 0x24:
-			{
-                if (fwrite(&cfg->commands[i].oneU64.param, sizeof(uint64_t), 1, file) != 1) {
-                    perror("Error writing oneU64.param");
                     fclose(file);
                     return -1;
                 }
@@ -741,7 +722,7 @@ int NetCfg_to_txt(FILE* file, const NetCfg_t* cfg) {
 			}
 			case 0x13: case 0x20: case 0x24:
 			{
-				fprintf(file, "\t\tparam: 0x%016llX\n", cfg->commands[i].oneU64.param);
+				fprintf(file, "\t\tparam: 0x%08X%08X\n", cfg->commands[i].twoU32.param[0],cfg->commands[i].twoU32.param[1]);
 				break;
 			}
 			case 0x42:

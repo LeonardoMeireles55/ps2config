@@ -430,8 +430,8 @@ int convert_NetToGx(const NetCfg_t* netCfg, GxCfg_t* gxCfg) {
 			// u64 net 13 20 24
 			case 0x11: case 0x1D: case 0x20:
 			{
-				gxCmd->oneU64.param = netCmd->oneU64.param;
-                break;
+                gxCmd->oneU64.param = ((uint64_t) gxCmd->twoU32.param[0] << 32) | gxCmd->twoU32.param[1];
+				break;
 			}
 			// 2 u16 net 0C
             case 0x0A:
@@ -598,7 +598,7 @@ void scan_task(const char *in, void (*func)(), const char *arg1, uint8_t arg2) {
 }
 
 static void print_help() {
-	printf( "\nUsage of ps2config-cmd v0.3\n"
+	printf( "\nUsage of ps2config-cmd v0.4\n"
 			"    Format\n"
 			"        ps2config-cmd.exe [option] <mode> <input> <output>\n"
 			"    Description\n"

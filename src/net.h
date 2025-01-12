@@ -63,9 +63,6 @@ typedef struct {
             uint16_t param[2];
         } twoU16;
         struct {
-            uint64_t param;
-        } oneU64;
-        struct {
             uint32_t param;
         } oneU32;
         struct {
